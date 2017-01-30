@@ -1,0 +1,119 @@
+#active-trip #parties {
+  margin-top:1rem;
+}
+.trow {
+   display:table-row;
+  width:auto;
+}
+.text-normal {
+  font-size: 1rem
+}
+.tcol {
+  display:table-cell;   
+  padding-top: 1rem
+}
+.list-block ul.no-top-bottom-border:before, 
+.content-block-inner.no-top-border:before,
+.list-block ul.no-top-bottom-border:after, 
+.list-block ul.no-top-border:before {
+  background-color:white;
+}
+
+.table {
+  display:  table;
+  width:100%;
+}
+
+#confirm-start #shuttle.label,
+#active-trip .location {
+  margin-right:0.5rem;
+}
+
+.page-content.active-trip {
+  background-color: white
+}
+
+#add-party .label,
+#confirm-start .label,
+#confirm-end .label,
+#active-trip .label {
+}
+#active-trip #start-time {
+  font-weight: bold;
+  font-size: 1.5rem;
+  position:relative;
+  top:-0.5rem;
+  margin-left: 1rem
+}
+.empty-col {
+  width:10px;
+}
+.pointer {
+  cursor: pointer;
+}
+.popup-view {
+  overflow: auto;
+}
+.text-center {
+  text-align: center;
+}
+.center {
+  margin-left: auto;
+  margin-right: auto;
+}
+.f7-icons.size-14 {
+  font-size: 14px;
+}
+.f7-icons.size-16 {
+  font-size: 16px;
+}
+.f7-icons.size-18 {
+  font-size: 18px;
+}
+.f7-icons.size-22 {
+  font-size: 22px;
+}
+.f7-icons.size-25 {
+  font-size: 25px;
+}
+.f7-icons.size-29 {
+  font-size: 29px;
+}
+.f7-icons.size-50 {
+  font-size: 50px;
+}
+.f7-icons.size-100 {
+  font-size: 100px;
+}
+
+
+.ml1 {
+  margin-left: 1px
+}
+.ml10 {
+  margin-left: 10px
+}
+.mr20 {
+  margin-right: 20px
+}
+.preloader-big {
+  width:42px;
+  height:42px;
+}
+
+.time-big {
+  font-size:29px;
+}
+
+.nav-action {
+  padding-left:10px;
+}
+.submit .preloader {
+  padding-top:7px;
+}
+
+#active-trip #duration {
+  position:absolute;
+  top: -2px;
+  padding-left:25px;
+}
