@@ -2,7 +2,7 @@
 (function() {
 var define = System.amdDefine;
 define("app/active-trip.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"app/components/cselect\"></require><require from=\"app/components/trips/trip-duration\"></require><div id=\"active-trip\" if.bind=\"completed\"><center><div class=\"content-block-title color-green\">Trip completed successfully.</div><div class=\"content-block\"><p class=\"color-green\">Continue with other <a class=\"pointer\" route-href=\"route: parties\">trips</a></p></div></center></div><div id=\"active-trip\" if.bind=\"!completed\"><div class=\"text-center\"><div class=\"col-auto\"><i class=\"f7-icons size-50\">time</i> <span id=\"start-time\"><trip-duration start-time.bind=\"app.appContext.tripStartTime\"></trip-duration></span></div></div><div class=\"content-block label text-center\"><div class=\"row no-gutter\" if.bind=\"activeTripParties.length\"><div class=\"col-auto\">Party</div><div class=\"col-auto\">From</div><div class=\"col-auto\">To</div><div if.bind=\"hasMoreThanOneActiveTrips\" class=\"col-auto\"></div></div></div><div class=\"content-block text-center\"><div class=\"row no-gutter\" repeat.for=\"party of activeTripParties\"><div class=\"col-auto\"><span>${party.paddedNumber}: ${party.partyName} Party of ${party.partySize}</span></div><div class=\"col-auto\">${activeTrip.pickup}</div><div class=\"col-auto\"><cselect if.bind=\"hasMoreThanOneActiveTrips\" options.bind=\"destinations\" value.bind=\"party.destination\"></cselect><span if.bind=\"!hasMoreThanOneActiveTrips\">${activeTrip.destination}</span></div><div class=\"col-auto\" if.bind=\"hasMoreThanOneActiveTrips\"><a click.delegate=\"completeSingleTrip(party)\" type=\"button\" class=\"button\">Drop Off</a></div></div></div><div class=\"content-block\"><div class=\"row text-center\"><div class=\"col-auto\"><a click.delegate=\"addParty()\" class=\"button button-round\">ADD PARTY</a></div><div class=\"col-auto\"><a click.delegate=\"endTrip()\" class=\"button button-round\">END TRIP</a></div></div></div></div></template>";
+  return "<template><require from=\"app/components/cselect\"></require><require from=\"app/components/trips/trip-duration\"></require><div id=\"active-trip\" if.bind=\"completed\"><center><div class=\"content-block-title color-green\">Trip completed successfully.</div><div class=\"content-block\"><p class=\"color-green\">Continue with other <a class=\"pointer\" route-href=\"route: parties\">trips</a></p></div></center></div><div id=\"active-trip\" if.bind=\"!completed\"><div class=\"text-center\"><div class=\"col-auto\"><i class=\"f7-icons size-50\">time</i> <span id=\"start-time\"><trip-duration start-time.bind=\"app.appContext.tripStartTime\"></trip-duration></span></div></div><div class=\"content-block label text-center\"><div class=\"row no-gutter\" if.bind=\"activeTripParties.length\"><div class=\"col-auto\">Party</div><div class=\"col-auto\">From</div><div class=\"col-auto\">To</div><div if.bind=\"hasMoreThanOneActiveTrips\" class=\"col-auto\"></div></div></div><div class=\"content-block text-center\"><div class=\"row no-gutter\" repeat.for=\"party of activeTripParties\"><div class=\"col-auto\"><span>${party.paddedNumber}: ${party.partyName} Party of ${party.partySize}</span></div><div class=\"col-auto\">${activeTrip.pickup}</div><div class=\"col-auto\"><cselect if.bind=\"hasMoreThanOneActiveTrips\" options.bind=\"destinations\" value.bind=\"party.destination\"></cselect><span if.bind=\"!hasMoreThanOneActiveTrips\">${activeTrip.destination}</span></div><div class=\"col-auto\" if.bind=\"hasMoreThanOneActiveTrips\"><a click.delegate=\"completeSingleTrip(party)\" type=\"button\" class=\"button button-raised\">Drop Off</a></div></div></div><div class=\"content-block\"><div class=\"row text-center\"><div class=\"col-auto\"><a click.delegate=\"addParty()\" class=\"button button-raised button-round\">ADD PARTY</a></div><div class=\"col-auto\"><a click.delegate=\"endTrip()\" class=\"button button-raised button-round\">END TRIP</a></div></div></div></div></template>";
 });
 
 })();
@@ -2100,7 +2100,7 @@ System.register('app/components/nav-bars/active-trip.js', ['./base', 'aurelia-fr
 (function() {
 var define = System.amdDefine;
 define("app/components/nav-bars/base.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left sliding\">${header} <span if.bind=\"canAdd\" class=\"ml10\"><a click.delegate=\"addResource()\" class=\"link pointer\"><i class=\"f7-icons\">add_round</i></a></span></div><div class=\"center\"><a click.delegate=\"logout()\" class=\"nav-link logout-link pointer\">Logout</a></div><div class=\"right\"><div class=\"nav-circle\">${authContext.currentUser.initials}</div></div></div><div if.bind=\"canAdd\" class=\"subnavbar\"><div class=\"buttons-row\"><a click.delegate=\"startTrip()\" if.bind=\"canStartTrip\" class=\"button pointer\">Start Trip</a> <a click.delegate=\"startTrip()\" if.bind=\"!canStartTrip\" class=\"button pointer\" disabled=\"disabled\">Start Trip</a> <a class=\"button pointer\" click.delegate=\"editParty()\" if.bind=\"canEdit\"><i class=\"f7-icons\">compose</i></a> <a class=\"button pointer\" if.bind=\"!canEdit\"><i class=\"f7-icons\" disabled=\"disabled\">compose</i></a> <a click.delegate=\"archiveParty()\" class=\"button pointer\" if.bind=\"canArchive\"><i class=\"f7-icons\">delete_round</i></a> <a class=\"button pointer\" if.bind=\"!canArchive\"><i class=\"f7-icons\" disabled=\"disabled\">delete_round</i></a></div></div></div></template>";
+  return "<template><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left sliding\">${header} <span if.bind=\"canAdd\" class=\"ml10\"><a click.delegate=\"addResource()\" class=\"link pointer\"><i class=\"f7-icons\">add_round</i></a></span></div><div class=\"center\"><a click.delegate=\"logout()\" class=\"link logout-link pointer\">Logout</a></div><div class=\"right\"><div class=\"nav-circle\">${authContext.currentUser.initials}</div></div></div><div if.bind=\"canAdd\" class=\"subnavbar\"><div class=\"buttons-row\"><a click.delegate=\"startTrip()\" if.bind=\"canStartTrip\" class=\"button button-raised pointer\">Start Trip</a> <a click.delegate=\"startTrip()\" if.bind=\"!canStartTrip\" class=\"button button-raised pointer\" disabled=\"disabled\">Start Trip</a> <a class=\"button button-raised pointer\" click.delegate=\"editParty()\" if.bind=\"canEdit\"><i class=\"f7-icons\">compose</i></a> <a class=\"button button-raised pointer\" if.bind=\"!canEdit\"><i class=\"f7-icons\" disabled=\"disabled\">compose</i></a> <a click.delegate=\"archiveParty()\" class=\"button button-raised pointer\" if.bind=\"canArchive\"><i class=\"f7-icons\">delete_round</i></a> <a class=\"button button-raised pointer\" if.bind=\"!canArchive\"><i class=\"f7-icons\" disabled=\"disabled\">delete_round</i></a></div></div></div></template>";
 });
 
 })();
@@ -3467,7 +3467,7 @@ System.register('app/components/resource-table/tr-renderer.js', ['aurelia-framew
 (function() {
 var define = System.amdDefine;
 define("app/components/submit.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><div class=\"submit\"><a click.delegate=\"submit()\" class=\"button button-round\">${text}</a><center if.bind=\"isLoading\"><span class=\"preloader preloader-big\"></span></center></div></template>";
+  return "<template><div class=\"submit\"><a click.delegate=\"submit()\" class=\"button button-raised button-round\">${text}</a><center if.bind=\"isLoading\"><span class=\"preloader preloader-big\"></span></center></div></template>";
 });
 
 })();
@@ -3813,10 +3813,131 @@ System.register('app/components/third-party/numeric-input.js', ['aurelia-framewo
 (function() {
 var define = System.amdDefine;
 define("app/components/tool-bar.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template bindable=\"page\"><div class=\"toolbar tabbar toolbar-bottom\"><div class=\"toolbar-inner\"><a route-href=\"route: parties\" class=\"tab-link ${page == 'parties' ? 'active': ''}\"><span class=\"tabbar-label\">Parties</span> </a><a route-href=\"route: trips\" class=\"tab-link ${page == 'trips' ? 'active': ''}\"><span class=\"tabbar-label\">Trips</span></a></div></div></template>";
+  return "<template><div class=\"toolbar tabbar toolbar-bottom\"><div class=\"toolbar-inner\"><a click.delegate=\"navParties()\" class=\"tab-link ${page == 'parties' ? 'active': ''}\"><span class=\"tabbar-label\">Parties</span> </a><a click.delegate=\"navTrips()\" ref=\"tabTrips\" class=\"tab-link ${page == 'trips' ? 'active': ''}\"><span class=\"tabbar-label\">Trips</span></a></div></div></template>";
 });
 
 })();
+'use strict';
+
+System.register('app/components/tool-bar.js', ['app/app-base', 'aurelia-framework'], function (_export, _context) {
+  "use strict";
+
+  var AppBase, bindable, _desc, _value, _class, _descriptor, ToolBar;
+
+  function _initDefineProp(target, property, descriptor, context) {
+    if (!descriptor) return;
+    Object.defineProperty(target, property, {
+      enumerable: descriptor.enumerable,
+      configurable: descriptor.configurable,
+      writable: descriptor.writable,
+      value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
+    });
+  }
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+      desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+      desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+      return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+      desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+      desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+      Object['define' + 'Property'](target, property, desc);
+      desc = null;
+    }
+
+    return desc;
+  }
+
+  function _initializerWarningHelper(descriptor, context) {
+    throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
+  }
+
+  return {
+    setters: [function (_appAppBase) {
+      AppBase = _appAppBase.AppBase;
+    }, function (_aureliaFramework) {
+      bindable = _aureliaFramework.bindable;
+    }],
+    execute: function () {
+      _export('ToolBar', ToolBar = (_class = function (_AppBase) {
+        _inherits(ToolBar, _AppBase);
+
+        function ToolBar() {
+          var _temp, _this, _ret;
+
+          _classCallCheck(this, ToolBar);
+
+          for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+          }
+
+          return _ret = (_temp = (_this = _possibleConstructorReturn(this, _AppBase.call.apply(_AppBase, [this].concat(args))), _this), _initDefineProp(_this, 'page', _descriptor, _this), _temp), _possibleConstructorReturn(_this, _ret);
+        }
+
+        ToolBar.prototype.navParties = function navParties() {
+          this.app.router.navigateToRoute('parties');
+        };
+
+        ToolBar.prototype.navTrips = function navTrips() {
+          this.app.router.navigateToRoute('trips');
+        };
+
+        return ToolBar;
+      }(AppBase), _descriptor = _applyDecoratedDescriptor(_class.prototype, 'page', [bindable], {
+        enumerable: true,
+        initializer: null
+      }), _class));
+
+      _export('ToolBar', ToolBar);
+    }
+  };
+});
+
 'use strict';
 
 System.register('app/components/trips/confirm-dialog.js', ['app/components/dialog', 'app/app'], function (_export, _context) {
@@ -3892,7 +4013,7 @@ System.register('app/components/trips/confirm-dialog.js', ['app/components/dialo
 (function() {
 var define = System.amdDefine;
 define("app/components/trips/confirm-end.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"./parties\"></require><require from=\"app/components/trips/other-location\"></require><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left\"></div><div class=\"center\" style=\"left: 0px\">${heading}</div><div class=\"right\"></div></div></div><center id=\"confirm-end\"><p class=\"label\">${message}?</p><div class=\"content-block\"><parties if.bind=\"selectedParties.length\" parties.bind=\"selectedParties\" selected.bind=\"selectedPartyIds\" value.bind=\"app.appContext.endTripPartyIds\"></parties></div><p class=\"label\">Confirm End Location</p><div class=\"content-block\" click.delegate=\"setDestination($event)\"><div class=\"row\"><div class=\"col-auto\"><a class=\"destination button\">${app.authContext.currentLocation()}</a></div><div class=\"col-auto\"><a class=\"destination button\">Airport</a></div><div class=\"col-auto\"><other-location other.bind=\"other\"></other-location></div></div></div><div class=\"content-block\"><p class=\"label color-green\">Destination: ${trip.destination}</p><div class=\"content-block\"><div class=\"row\"><div class=\"col-auto\"><a click.delegate=\"cancel()\" class=\"button button-round\">Cancel</a></div><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button button-round\">Ok</a></div></div></div></div></center></template>";
+  return "<template><require from=\"./parties\"></require><require from=\"app/components/trips/other-location\"></require><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left\"></div><div class=\"center\" style=\"left: 0px\">${heading}</div><div class=\"right\"></div></div></div><center id=\"confirm-end\"><p class=\"label\">${message}?</p><div class=\"content-block\"><parties if.bind=\"selectedParties.length\" parties.bind=\"selectedParties\" selected.bind=\"selectedPartyIds\" value.bind=\"app.appContext.endTripPartyIds\"></parties></div><p class=\"label\">Confirm End Location</p><div class=\"content-block\" click.delegate=\"setDestination($event)\"><div class=\"row\"><div class=\"col-auto\"><a class=\"destination button\">${app.authContext.currentLocation()}</a></div><div class=\"col-auto\"><a class=\"destination button\">Airport</a></div><div class=\"col-auto\"><other-location other.bind=\"other\"></other-location></div></div></div><div class=\"content-block\"><p class=\"label color-green\">Destination: ${trip.destination}</p><div class=\"content-block\"><div class=\"row\"><div class=\"col-auto\"><a click.delegate=\"cancel()\" class=\"button button-raised button-round\">Cancel</a></div><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button button-raised button-round\">Ok</a></div></div></div></div></center></template>";
 });
 
 })();
@@ -4048,14 +4169,14 @@ System.register('app/components/trips/confirm-end.js', ['app/bootstrap-dialog', 
 (function() {
 var define = System.amdDefine;
 define("app/components/trips/confirm-start.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"app/components/cselect\"></require><require from=\"./parties\"></require><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left\"></div><div class=\"center\" style=\"left: 0px\">${heading}</div><div class=\"right\"></div></div></div><div class=\"content-block text-center color-red\" if.bind=\"!shuttlesAvailable\"><p>Sorry you cannot start the trip, no shuttles are available at your location.</p></div><div if.bind=\"!shuttlesAvailable\"><div class=\"text-center\"><a click.delegate=\"closeDialog()\" class=\"button\">Ok</a></div></div><form id=\"confirm-start\" role=\"form\" submit.delegate=\"submit()\" if.bind=\"shuttlesAvailable\"><center><p class=\"label\">${message}?</p><div class=\"content-block\"><parties parties.bind=\"app.appContext.reservedActiveParties\" selected.bind=\"selectedPartyIds\" value.bind=\"app.appContext.startTripPartyIds\"></parties></div><div class=\"content-block\"><div class=\"list-block\"><ul class=\"no-top-bottom-border\"><li><div class=\"item-content\"><div class=\"item-inner\"><div class=\"item-title label\">Shuttle:</div><div class=\"item-input\"><cselect form-control=\"false\" empty-text=\"No shuttles available at your location\" options.bind=\"shuttles\" blank-text=\"Please select a shuttle\" value.bind=\"driverShuttleId & validate\"></cselect></div></div></div></li></ul></div></div><div class=\"content-block\"><div class=\"row\"><div class=\"col-auto\"><a click.delegate=\"closeDialog()\" class=\"button\">Cancel</a></div><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button\">Ok</a></div></div></div></center></form></template>";
+  return "<template><require from=\"app/components/cselect\"></require><require from=\"./parties\"></require><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left\"></div><div class=\"center\" style=\"left: 0px\">${heading}</div><div class=\"right\"></div></div></div><div class=\"content-block text-center color-red\" if.bind=\"!shuttlesAvailable\"><p>Sorry you cannot start the trip, no shuttles are available at your location.</p></div><div if.bind=\"!shuttlesAvailable\"><div class=\"text-center\"><a click.delegate=\"closeDialog()\" class=\"button button-raised\">Ok</a></div></div><form id=\"confirm-start\" role=\"form\" submit.delegate=\"submit()\" if.bind=\"shuttlesAvailable\"><center><p class=\"label\">${message}?</p><div class=\"content-block\"><parties parties.bind=\"app.appContext.reservedActiveParties\" selected.bind=\"selectedPartyIds\" value.bind=\"app.appContext.startTripPartyIds\"></parties></div><div class=\"content-block\"><div class=\"list-block\"><ul class=\"no-top-bottom-border\"><li><div class=\"item-content\"><div class=\"item-inner\"><div class=\"item-title label\">Shuttle:</div><div class=\"item-input\"><cselect form-control=\"false\" empty-text=\"No shuttles available at your location\" options.bind=\"shuttles\" blank-text=\"Please select a shuttle\" value.bind=\"driverShuttleId & validate\"></cselect></div></div></div></li></ul></div></div><div class=\"content-block\"><div class=\"row\"><div class=\"col-auto\"><a click.delegate=\"closeDialog()\" class=\"button button-raised\">Cancel</a></div><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button button-raised\">Ok</a></div></div></div></center></form></template>";
 });
 
 })();
 (function() {
 var define = System.amdDefine;
 define("app/components/trips/other-location.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><a class=\"button other destination\" click.delegate=\"enableInputMode()\" if.bind=\"!inputMode\">Other</a> <input if.bind=\"inputMode\" type=\"text\" value.bind=\"other\"></template>";
+  return "<template><a class=\"button button-raised other destination\" click.delegate=\"enableInputMode()\" if.bind=\"!inputMode\">Other</a> <input if.bind=\"inputMode\" type=\"text\" value.bind=\"other\"></template>";
 });
 
 })();
@@ -4269,7 +4390,7 @@ define("app/components/trips/party.html!github:systemjs/plugin-text@0.0.9.js", [
 (function() {
 var define = System.amdDefine;
 define("app/components/trips/trip-add-party.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"app/components/cselect\"></require><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left\"></div><div class=\"center\" style=\"left: 0px\">${heading}</div><div class=\"right\"></div></div></div><form role=\"form\" submit.delegate=\"submit()\"><div class=\"content-block\"><div class=\"list-block content-block-inner no-top-border\"><ul class=\"no-top-bottom-border\"><li><div class=\"item-content\"><div class=\"item-inner\"><div class=\"item-title label\">Party:</div><div class=\"item-input\"><cselect value.bind=\"partyToAdd & validate\" options.bind=\"availableParties\" blank-text=\"Choose Party To Add\"></cselect></div></div></div></li></ul></div></div><div class=\"content-block\"><div class=\"row text-center\"><div class=\"col-auto\"><a click.delegate=\"closeDialog()\" class=\"button\">Cancel</a></div><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button\">Ok</a></div></div></div></form></template>";
+  return "<template><require from=\"app/components/cselect\"></require><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left\"></div><div class=\"center\" style=\"left: 0px\">${heading}</div><div class=\"right\"></div></div></div><form role=\"form\" submit.delegate=\"submit()\"><div class=\"content-block\"><div class=\"list-block content-block-inner no-top-border\"><ul class=\"no-top-bottom-border\"><li><div class=\"item-content\"><div class=\"item-inner\"><div class=\"item-title label\">Party:</div><div class=\"item-input\"><cselect value.bind=\"partyToAdd & validate\" options.bind=\"availableParties\" blank-text=\"Choose Party To Add\"></cselect></div></div></div></li></ul></div></div><div class=\"content-block\"><div class=\"row text-center\"><div class=\"col-auto\"><a click.delegate=\"closeDialog()\" class=\"button button-raised\">Cancel</a></div><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button button-raised\">Ok</a></div></div></div></form></template>";
 });
 
 })();
@@ -5036,7 +5157,7 @@ define("app/location-not-found.html!github:systemjs/plugin-text@0.0.9.js", [], f
 (function() {
 var define = System.amdDefine;
 define("app/main-view.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"app/components/nav-bar\"></require><require from=\"app/components/tool-bar.html\"></require><div class=\"views\"><div class=\"view view-main\"><nav-bar if.bind=\"currentPage && !appContext.isAndroid\" page.bind=\"currentPage\"></nav-bar><div class=\"pages navbar-fixed toolbar-through\"><div data-page=\"index\" class=\"page\"><nav-bar if.bind=\"currentPage && appContext.isAndroid\" page.bind=\"currentPage\"></nav-bar><tool-bar if.bind=\"currentPageName && appContext.isAndroid\" page.bind=\"currentPageName\" containerless></tool-bar><div class=\"page-content ${currentPageClass} text-normal\"><router-view></router-view></div></div></div><tool-bar if.bind=\"currentPageName && !appContext.isAndroid\" page.bind=\"currentPageName\" containerless></tool-bar></div></div></template>";
+  return "<template><require from=\"app/components/nav-bar\"></require><require from=\"app/components/tool-bar\"></require><div class=\"views\"><div class=\"view view-main\"><nav-bar if.bind=\"currentPage && !appContext.isAndroid\" page.bind=\"currentPage\"></nav-bar><div class=\"pages navbar-fixed toolbar-through\"><div data-page=\"index\" class=\"page\"><nav-bar if.bind=\"currentPage && appContext.isAndroid\" page.bind=\"currentPage\"></nav-bar><tool-bar if.bind=\"currentPageName && appContext.isAndroid\" page.bind=\"currentPageName\" containerless></tool-bar><div class=\"page-content ${currentPageClass} text-normal\"><router-view></router-view></div></div></div><tool-bar if.bind=\"currentPageName && !appContext.isAndroid\" page.bind=\"currentPageName\" containerless></tool-bar></div></div></template>";
 });
 
 })();
@@ -5174,7 +5295,7 @@ System.register('app/main-view.js', ['aurelia-framework', 'app/app-context'], fu
 (function() {
 var define = System.amdDefine;
 define("app/not-found.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"bootstrap/css/bootstrap.css\"></require><div class=\"container\"><div class=\"row p-t-1\"><div class=\"brand col-xs-12 text-xs-center\"><a route-href=\"route: trips\"><h2>${router.title}</h2></a></div></div><div class=\"row p-t-3\"><div class=\"col-md-12\"><p class=\"text-xs-center\"><span class=\"text-info\" style=\"font-size:3em\">Uh-oh</span></p><p class=\"text-xs-center\">It looks like you have taken a wrong turn</p><p class=\"text-xs-center\">Take a few deep breaths and <a route-href=\"route: trips\">start</a> again.</p></div></div></div></template>";
+  return "<template><div class=\"content-block-title color-red\">Uh-oh</div><div class=\"content-block\"><div class=\"content-block-inner\"><p class=\"text-xs-center\">It looks like you have taken a wrong turn</p><p class=\"text-xs-center\">Take a few deep breaths and <a route-href=\"route: trips\">start</a> again.</p></div></div></template>";
 });
 
 })();
@@ -5491,10 +5612,10 @@ System.register('app/resource-dialog.js', ['aurelia-framework', 'app/models', 'a
 
 'use strict';
 
-System.register('app/bootstrap-form.js', ['aurelia-validation', 'aurelia-framework', 'app/validation/bootstrap-form-validation-renderer'], function (_export, _context) {
+System.register('app/bootstrap-form.js', ['aurelia-validation', 'aurelia-framework'], function (_export, _context) {
   "use strict";
 
-  var ValidationControllerFactory, ValidationController, ValidationRules, inject, NewInstance, BootstrapFormValidationRenderer, _dec, _class, BootstrapForm;
+  var ValidationControllerFactory, ValidationController, ValidationRules, inject, NewInstance, _dec, _class, BootstrapForm;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -5510,8 +5631,6 @@ System.register('app/bootstrap-form.js', ['aurelia-validation', 'aurelia-framewo
     }, function (_aureliaFramework) {
       inject = _aureliaFramework.inject;
       NewInstance = _aureliaFramework.NewInstance;
-    }, function (_appValidationBootstrapFormValidationRenderer) {
-      BootstrapFormValidationRenderer = _appValidationBootstrapFormValidationRenderer.BootstrapFormValidationRenderer;
     }],
     execute: function () {
       _export('BootstrapForm', BootstrapForm = (_dec = inject(NewInstance.of(ValidationController)), _dec(_class = function () {
@@ -5519,7 +5638,6 @@ System.register('app/bootstrap-form.js', ['aurelia-validation', 'aurelia-framewo
           _classCallCheck(this, BootstrapForm);
 
           this.controller = controller;
-          this.controller.addRenderer(new BootstrapFormValidationRenderer());
         }
 
         BootstrapForm.prototype.validationRules = function validationRules() {
@@ -6142,144 +6260,10 @@ System.register('app/stores.js', ['aurelia-framework', 'app/stores/index'], func
 
 'use strict';
 
-System.register('app/validation/bootstrap-form-validation-renderer.js', ['aurelia-validation'], function (_export, _context) {
+System.register('app/resource-dialog-form.js', ['app/resource-dialog', 'aurelia-framework', 'app/bootstrap-form', 'aurelia-validation', 'app/utils', 'app/stores', 'app/app', 'app/collection'], function (_export, _context) {
   "use strict";
 
-  var ValidationRenderer, RenderInstruction, ValidationError, BootstrapFormValidationRenderer;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  return {
-    setters: [function (_aureliaValidation) {
-      ValidationRenderer = _aureliaValidation.ValidationRenderer;
-      RenderInstruction = _aureliaValidation.RenderInstruction;
-      ValidationError = _aureliaValidation.ValidationError;
-    }],
-    execute: function () {
-      _export('BootstrapFormValidationRenderer', BootstrapFormValidationRenderer = function () {
-        function BootstrapFormValidationRenderer() {
-          _classCallCheck(this, BootstrapFormValidationRenderer);
-        }
-
-        BootstrapFormValidationRenderer.prototype.render = function render(instruction) {
-          for (var _iterator = instruction.unrender, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
-            var _ref;
-
-            if (_isArray) {
-              if (_i >= _iterator.length) break;
-              _ref = _iterator[_i++];
-            } else {
-              _i = _iterator.next();
-              if (_i.done) break;
-              _ref = _i.value;
-            }
-
-            var _ref3 = _ref,
-                error = _ref3.error,
-                elements = _ref3.elements;
-
-            for (var _iterator3 = elements, _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
-              var _ref4;
-
-              if (_isArray3) {
-                if (_i3 >= _iterator3.length) break;
-                _ref4 = _iterator3[_i3++];
-              } else {
-                _i3 = _iterator3.next();
-                if (_i3.done) break;
-                _ref4 = _i3.value;
-              }
-
-              var element = _ref4;
-
-              this.remove(element, error);
-            }
-          }
-
-          for (var _iterator2 = instruction.render, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
-            var _ref2;
-
-            if (_isArray2) {
-              if (_i2 >= _iterator2.length) break;
-              _ref2 = _iterator2[_i2++];
-            } else {
-              _i2 = _iterator2.next();
-              if (_i2.done) break;
-              _ref2 = _i2.value;
-            }
-
-            var _ref5 = _ref2,
-                error = _ref5.error,
-                elements = _ref5.elements;
-
-            for (var _iterator4 = elements, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
-              var _ref6;
-
-              if (_isArray4) {
-                if (_i4 >= _iterator4.length) break;
-                _ref6 = _iterator4[_i4++];
-              } else {
-                _i4 = _iterator4.next();
-                if (_i4.done) break;
-                _ref6 = _i4.value;
-              }
-
-              var _element = _ref6;
-
-              this.add(_element, error);
-            }
-          }
-        };
-
-        BootstrapFormValidationRenderer.prototype.add = function add(element, error) {
-          var formGroup = element.closest('.form-group');
-          if (!formGroup) {
-            return;
-          }
-
-          formGroup.classList.add('has-danger');
-
-          var message = document.createElement('span');
-          message.className = 'help-block form-control-feedback validation-message';
-          message.textContent = error.message;
-          message.id = 'validation-message-' + error.id;
-          element.parentNode.insertBefore(message, element.nextSibling);
-        };
-
-        BootstrapFormValidationRenderer.prototype.remove = function remove(element, error) {
-          var formGroup = element.closest('.form-group');
-          if (!formGroup) {
-            return;
-          }
-
-          var message = formGroup.querySelector('#validation-message-' + error.id);
-          if (message) {
-            element.parentNode.removeChild(message);
-
-            if (formGroup.querySelectorAll('.help-block.validation-message').length === 0) {
-              formGroup.classList.remove('has-danger');
-            }
-          }
-        };
-
-        return BootstrapFormValidationRenderer;
-      }());
-
-      _export('BootstrapFormValidationRenderer', BootstrapFormValidationRenderer);
-    }
-  };
-});
-
-'use strict';
-
-System.register('app/resource-dialog-form.js', ['app/resource-dialog', 'aurelia-framework', 'app/bootstrap-form', 'aurelia-validation', 'app/utils', 'app/stores', 'app/app', 'app/validation/bootstrap-form-validation-renderer', 'app/collection'], function (_export, _context) {
-  "use strict";
-
-  var ResourceDialog, inject, BootstrapForm, ValidationRules, Utils, Stores, App, BootstrapFormValidationRenderer, Collection, _dec, _class, submit, ResourceDialogForm;
+  var ResourceDialog, inject, BootstrapForm, ValidationRules, Utils, Stores, App, Collection, _dec, _class, submit, ResourceDialogForm;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -6326,8 +6310,6 @@ System.register('app/resource-dialog-form.js', ['app/resource-dialog', 'aurelia-
       Stores = _appStores.Stores;
     }, function (_appApp) {
       App = _appApp.App;
-    }, function (_appValidationBootstrapFormValidationRenderer) {
-      BootstrapFormValidationRenderer = _appValidationBootstrapFormValidationRenderer.BootstrapFormValidationRenderer;
     }, function (_appCollection) {
       Collection = _appCollection.Collection;
     }],
@@ -6793,7 +6775,7 @@ System.register('app/parties.js', ['aurelia-framework', 'app/add-resource-dialog
 (function() {
 var define = System.amdDefine;
 define("app/parties/add-party.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"app/trips/pickup-destination\"></require><require from=\"app/components/date-time-picker\"></require><require from=\"app/components/phone-number\"></require><require from=\"app/components/form-element.html\"></require><require from=\"app/components/third-party/numeric-input\"></require><require from=\"app/location-not-found.html\"></require><location-not-found if.bind=\"!locationValid\"></location-not-found><div class=\"actions content-block\" if.bind=\"!locationValid\"><div class=\"text-center\"><a click.delegate=\"actions.close()\" class=\"button\">Ok</a></div></div><div class=\"navbar\" if.bind=\"locationValid\"><div class=\"navbar-inner\"><div class=\"left\"></div><div class=\"center\" style=\"left: 0px\">${heading}</div><div class=\"right\"></div></div></div><div class=\"content-block\" if.bind=\"locationValid\"><form id=\"add-party\" role=\"form\" submit.delegate=\"submit()\"><pickup-destination hotel=\"${app.authContext.currentLocation()}\" from.bind=\"pickup & validate\" to.bind=\"destination & validate\"></pickup-destination><date-time-picker value.bind=\"departureTime & validate\">></date-time-picker><div class=\"list-block\"><ul class=\"no-top-border\"><form-element label=\"Party Name\" containerless><input value.bind=\"partyName & validate\" type=\"text\"></form-element><form-element label=\"Party Size\" containerless><numeric-input id=\"party-size\" value.bind=\"partySize & validate\"></numeric-input></form-element><form-element label=\"Contact #\" containerless><phone-number id=\"contact-number\" value.bind=\"contactNumber & validate\"></phone-number></form-element><form-element label=\"Room #\" containerless><numeric-input id=\"room-number\" value.bind=\"roomNumber\"></numeric-input></form-element><form-element label=\"Email\" containerless><input class=\"form-control\" id=\"email\" type=\"email\" value.bind=\"email & validate\"></form-element><form-element label=\"Trip Notes\" containerless><textarea value.bind=\"tripNotes & validate\" rows=\"3\"></textarea></form-element></ul></div><div class=\"content-block\"><div class=\"row\"><div class=\"col-auto\"><a click.delegate=\"actions.close()\" class=\"button\">Cancel</a></div><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button\">Ok</a></div></div></div></form></div></template>";
+  return "<template><require from=\"app/trips/pickup-destination\"></require><require from=\"app/components/date-time-picker\"></require><require from=\"app/components/phone-number\"></require><require from=\"app/components/form-element.html\"></require><require from=\"app/components/third-party/numeric-input\"></require><require from=\"app/location-not-found.html\"></require><location-not-found if.bind=\"!locationValid\"></location-not-found><div class=\"actions content-block\" if.bind=\"!locationValid\"><div class=\"text-center\"><a click.delegate=\"actions.close()\" class=\"button button-raised\">Ok</a></div></div><div class=\"navbar\" if.bind=\"locationValid\"><div class=\"navbar-inner\"><div class=\"left\"></div><div class=\"center\" style=\"left: 0px\">${heading}</div><div class=\"right\"></div></div></div><div class=\"content-block\" if.bind=\"locationValid\"><form id=\"add-party\" role=\"form\" submit.delegate=\"submit()\"><pickup-destination hotel=\"${app.authContext.currentLocation()}\" from.bind=\"pickup & validate\" to.bind=\"destination & validate\"></pickup-destination><date-time-picker value.bind=\"departureTime & validate\">></date-time-picker><div class=\"list-block\"><ul class=\"no-top-border\"><form-element label=\"Party Name\" containerless><input value.bind=\"partyName & validate\" type=\"text\"></form-element><form-element label=\"Party Size\" containerless><numeric-input id=\"party-size\" value.bind=\"partySize & validate\"></numeric-input></form-element><form-element label=\"Contact #\" containerless><phone-number id=\"contact-number\" value.bind=\"contactNumber & validate\"></phone-number></form-element><form-element label=\"Room #\" containerless><numeric-input id=\"room-number\" value.bind=\"roomNumber\"></numeric-input></form-element><form-element label=\"Email\" containerless><input class=\"form-control\" id=\"email\" type=\"email\" value.bind=\"email & validate\"></form-element><form-element label=\"Trip Notes\" containerless><textarea value.bind=\"tripNotes & validate\" rows=\"3\"></textarea></form-element></ul></div><div class=\"content-block\"><div class=\"row\"><div class=\"col-auto\"><a click.delegate=\"actions.close()\" class=\"button button-raised\">Cancel</a></div><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button button-raised\">Ok</a></div></div></div></form></div></template>";
 });
 
 })();
@@ -8750,7 +8732,7 @@ System.register('app/f7.js', ['framework7'], function (_export, _context) {
       _export('f7', f7);
 
       if (f7.device.android) {
-        $$('head').append('<link rel="stylesheet" href="jspm_packages/npm/framework7@1.4.2/dist/css/framework7.android.min.css">' + '<link rel="stylesheet" href="jspm_packages/npm/framework7@1.4.2/dist/css/framework7.android.colors.min.css">');
+        $$('head').append('<link rel="stylesheet" href="jspm_packages/npm/framework7@1.4.2/dist/css/framework7.material.min.css">' + '<link rel="stylesheet" href="jspm_packages/npm/framework7@1.4.2/dist/css/framework7.material.colors.min.css">');
       } else {
         $$('head').append('<link rel="stylesheet" href="jspm_packages/npm/framework7@1.4.2/dist/css/framework7.ios.min.css">' + '<link rel="stylesheet" href="jspm_packages/npm/framework7@1.4.2/dist/css/framework7.ios.colors.min.css">');
       }
@@ -8852,8 +8834,6 @@ System.register('app/auth-context.js', ['app/utils', 'app/models/user'], functio
 
         AuthContext.prototype.loggedIn = function loggedIn(user) {
           this.currentUser = new UserModel(user);
-          console.log('logged in!!!!', this.currentUser, user);
-
           this.isAuthenticated = true;
         };
 
@@ -9761,7 +9741,7 @@ System.register('app/auth-service.js', ['app/config/api', 'app/auth-context', 'a
               }
             };
             if (user) {
-              if (!_this2.authContext.isDriver()) {
+              if (!new UserModel(user).isDriver()) {
                 console.log('rejecting');
                 return _this2.logout().then(function () {
                   reject("Only drivers can use this app.");

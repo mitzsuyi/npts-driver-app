@@ -801,6 +801,7 @@ System.config({
       "app/components/third-party/numeric-input.html!github:systemjs/plugin-text@0.0.9.js",
       "app/components/third-party/numeric-input.js",
       "app/components/tool-bar.html!github:systemjs/plugin-text@0.0.9.js",
+      "app/components/tool-bar.js",
       "app/components/trips/confirm-dialog.js",
       "app/components/trips/confirm-end.html!github:systemjs/plugin-text@0.0.9.js",
       "app/components/trips/confirm-end.js",
@@ -882,7 +883,6 @@ System.config({
       "app/utils.js",
       "app/utils/table.js",
       "app/validation-rules.js",
-      "app/validation/bootstrap-form-validation-renderer.js",
       "app/with-context.js",
       "init.js"
     ]
