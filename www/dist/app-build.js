@@ -8787,7 +8787,7 @@ System.register('app/config/app-router.js', ['app/authorize-step', 'app/skip-mai
 System.register('app/app.js', ['aurelia-framework', 'app/config/app-router', 'app/auth-context', 'app/app-context', 'app/auth-service', 'app/notifier', 'app/api', 'local-storage'], function (_export, _context) {
   "use strict";
 
-  var inject, AppRouterConfig, computedFrom, AuthContext, AppContext, AuthService, Notifier, Api, ls, _createClass, _dec, _dec2, _class, _desc, _value, _class2, App;
+  var inject, Aurelia, AppRouterConfig, computedFrom, AuthContext, AppContext, AuthService, Notifier, Api, ls, _createClass, _dec, _dec2, _class, _desc, _value, _class2, App;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -8827,6 +8827,7 @@ System.register('app/app.js', ['aurelia-framework', 'app/config/app-router', 'ap
   return {
     setters: [function (_aureliaFramework) {
       inject = _aureliaFramework.inject;
+      Aurelia = _aureliaFramework.Aurelia;
       computedFrom = _aureliaFramework.computedFrom;
     }, function (_appConfigAppRouter) {
       AppRouterConfig = _appConfigAppRouter.default;
@@ -8862,8 +8863,8 @@ System.register('app/app.js', ['aurelia-framework', 'app/config/app-router', 'ap
         };
       }();
 
-      _export('App', App = (_dec = inject(AuthContext, AppContext, AuthService, Notifier, Api), _dec2 = computedFrom("authContext.isAuthenticated", "appContext.skipMainView"), _dec(_class = (_class2 = function () {
-        function App(authContext, appContext, authService, notifier, api) {
+      _export('App', App = (_dec = inject(Aurelia, AuthContext, AppContext, AuthService, Notifier, Api), _dec2 = computedFrom("authContext.isAuthenticated", "appContext.skipMainView"), _dec(_class = (_class2 = function () {
+        function App(aurelia, authContext, appContext, authService, notifier, api) {
           var _this = this;
 
           _classCallCheck(this, App);
@@ -8874,6 +8875,7 @@ System.register('app/app.js', ['aurelia-framework', 'app/config/app-router', 'ap
             }
           };
 
+          this.aurelia = aurelia;
           this.authContext = authContext;
           this.appContext = appContext;
           this.authService = authService;
