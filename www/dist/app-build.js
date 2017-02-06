@@ -2,7 +2,7 @@
 (function() {
 var define = System.amdDefine;
 define("app/active-trip.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"app/components/cselect\"></require><require from=\"app/components/trips/trip-duration\"></require><div id=\"active-trip\" if.bind=\"completed\"><center><div class=\"content-block-title color-green\">Trip completed successfully.</div><div class=\"content-block\"><p class=\"color-green\">Continue with other <a class=\"pointer\" route-href=\"route: parties\">trips</a></p></div></center></div><div id=\"active-trip\" if.bind=\"!completed\"><div class=\"text-center\"><div class=\"col-auto\"><i class=\"f7-icons size-50\">time</i> <span id=\"start-time\"><trip-duration start-time.bind=\"app.appContext.tripStartTime\"></trip-duration></span></div></div><div class=\"content-block label text-center\"><div class=\"row no-gutter\" if.bind=\"activeTripParties.length\"><div class=\"col-auto\">Party</div><div class=\"col-auto\">From</div><div class=\"col-auto\">To</div><div if.bind=\"hasMoreThanOneActiveTrips\" class=\"col-auto\"></div></div></div><div class=\"content-block text-center\"><div class=\"row no-gutter\" repeat.for=\"party of activeTripParties\"><div class=\"col-auto\"><span>${party.paddedNumber}: ${party.partyName} Party of ${party.partySize}</span></div><div class=\"col-auto\">${activeTrip.pickup}</div><div class=\"col-auto\"><cselect if.bind=\"hasMoreThanOneActiveTrips\" options.bind=\"destinations\" value.bind=\"party.destination\"></cselect><span if.bind=\"!hasMoreThanOneActiveTrips\">${activeTrip.destination}</span></div><div class=\"col-auto\" if.bind=\"hasMoreThanOneActiveTrips\"><a click.delegate=\"completeSingleTrip(party)\" type=\"button\" class=\"button button-raised\">Drop Off</a></div></div></div><div class=\"content-block\"><div class=\"row text-center\"><div class=\"col-auto\"><a click.delegate=\"addParty()\" class=\"button button-raised button-round\">ADD PARTY</a></div><div class=\"col-auto\"><a click.delegate=\"endTrip()\" class=\"button button-raised button-round\">END TRIP</a></div></div></div></div></template>";
+  return "<template><require from=\"app/components/cselect\"></require><require from=\"app/components/trips/trip-duration\"></require><div id=\"active-trip\" if.bind=\"completed\"><center><div class=\"content-block-title color-green\">Trip completed successfully.</div><div class=\"content-block\"><p class=\"color-green\">Continue with other <a class=\"pointer\" route-href=\"route: parties\">trips</a></p></div></center></div><div id=\"active-trip\" if.bind=\"!completed\"><div class=\"text-center\"><div class=\"col-auto\"><i class=\"f7-icons size-50\">time</i> <span id=\"start-time\"><trip-duration start-time.bind=\"app.appContext.tripStartTime\"></trip-duration></span></div></div><div class=\"content-block\"><div class=\"list-block media-list\" repeat.for=\"party of activeTripParties\"><ul class=\"no-top-bottom-border\"><li class=\"card\"><div class=\"card-content\"><div class=\"item-content\"><div class=\"item-media\" if.bind=\"hasMoreThanOneActiveTrips\"><a click.delegate=\"completeSingleTrip(party)\" type=\"button\" class=\"button button-raised\">Drop Off</a></div><div class=\"item-inner\"><div class=\"item-title-row\"><div class=\"item-title\">${party.partyName}</div><div class=\"item-after\">${party.partyNumber}</div></div><div class=\"item-subtitle\">${party.paddedNumber}</div><div class=\"item-text\"><div class=\"row\"><p>From: ${party.pickup}</p><p>To: ${party.destination}</p></div></div></div></div></div></li></ul></div></div><div class=\"content-block\"><div class=\"row text-center\"><div class=\"col-auto\"><a click.delegate=\"addParty()\" class=\"button button-raised button-round\">ADD PARTY</a></div><div class=\"col-auto\"><a click.delegate=\"endTrip()\" class=\"button button-raised button-round\">END TRIP</a></div></div></div></div></template>";
 });
 
 })();
@@ -228,13 +228,15 @@ System.register('app/active-trip.js', ['app/app-base', 'aurelia-router', 'app/mo
         ActiveTrip.prototype.addParty = function addParty() {
           var _this5 = this;
 
-          this.dialogOpen(this.tripAddPartyView, this.activeTrip, function () {
-            var midTripParties = _this5.app.appContext.reservedActiveParties.filter(function (party) {
-              return _this5.app.appContext.midTripPartyIds.includes(party.id);
+          this.app.appContext.loadReservedActiveParties().then(function () {
+            _this5.dialogOpen(_this5.tripAddPartyView, _this5.activeTrip, function () {
+              var midTripParties = _this5.app.appContext.reservedActiveParties.filter(function (party) {
+                return _this5.app.appContext.midTripPartyIds.includes(party.id);
+              });
+              if (midTripParties.length > 0) {
+                _this5.activeTripParties = _this5.startTripParties.concat(midTripParties);
+              }
             });
-            if (midTripParties.length > 0) {
-              _this5.activeTripParties = _this5.startTripParties.concat(midTripParties);
-            }
           });
         };
 
@@ -260,7 +262,7 @@ System.register('app/active-trip.js', ['app/app-base', 'aurelia-router', 'app/mo
 (function() {
 var define = System.amdDefine;
 define("app/app.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"./main-view\"></require><require from=\"./popup\"></require><div class=\"statusbar-overlay\"></div><popup></popup><main-view if.bind=\"showMainView\" router.bind=\"router\" containerless></main-view><router-view if.bind=\"!showMainView\"></router-view></template>";
+  return "<template><require from=\"./main-view\"></require><require from=\"./popup\"></require><require from=\"./n-popup\"></require><div class=\"statusbar-overlay\"></div><popup></popup><n-popup></n-popup><main-view if.bind=\"showMainView\" router.bind=\"router\" containerless></main-view><router-view if.bind=\"!showMainView\"></router-view></template>";
 });
 
 })();
@@ -378,8 +380,8 @@ System.register('app/auth/login.js', ['app/auth-service', 'aurelia-framework', '
               _this2.router.navigateToRoute("home");
             }).catch(function (err) {
               var errMessage = "Login failed...";
-              if (err) {
-                errMessage = err;
+              if (err && err.message) {
+                errMessage = err.message;
               }
               _this2.app.notifier.danger(errMessage);
             });
@@ -1319,6 +1321,13 @@ define("app/auth/reset-pin/reset-success.html!github:systemjs/plugin-text@0.0.9.
 })();
 (function() {
 var define = System.amdDefine;
+define("app/components/back.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template bindable=\"title, action\"><a click.delegate=\"action()\" class=\"back pointer link\"><i class=\"icon icon-back\" style=\"transform: translate3d(0px, 0px, 0px)\"></i><span>${title || 'Back'}</span></a></template>";
+});
+
+})();
+(function() {
+var define = System.amdDefine;
 define("app/components/confirm.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
   return "<template><ai-dialog><ai-dialog-header><legend>${heading}</legend></ai-dialog-header><ai-dialog-body><div class=\"m-b-1\">${message}?</div></ai-dialog-body><ai-dialog-footer><button click.delegate=\"controller.cancel()\">Cancel</button> <button click.delegate=\"controller.ok(person)\">Ok</button></ai-dialog-footer></ai-dialog></template>";
 });
@@ -1326,17 +1335,82 @@ define("app/components/confirm.html!github:systemjs/plugin-text@0.0.9.js", [], f
 })();
 (function() {
 var define = System.amdDefine;
-define("app/components/cselect.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><select value.bind=\"value\" class=\"${klass}\"><option value=\"\" if.bind=\"showEmpty\">${emptyText}</option><option value=\"\" if.bind=\"showBlank\">${blankText}</option><option repeat.for=\"option of options\" value=\"${val(option)}\">${name(option)}</option></select></template>";
+define("app/components/cselect-popup.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template><require from=\"app/components/nav-popup.html\"></require><nav-popup heading=\"${name}\" actions.bind=\"actions\"></nav-popup><div click.delegate=\"updateValue($event)\" class=\"list-block\"><ul><li repeat.for=\"item of list\"><label class=\"label-radio item-content\"><input data-title=\"${actions.name(item)}\" if.bind=\"!isSelected(item)\" id=\"${$index}\" type=\"radio\" name=\"radio\" value=\"${actions.val(item)}\"> <input data-title=\"${actions.name(item)}\" if.bind=\"isSelected(item)\" id=\"${$index}\" type=\"radio\" name=\"radio\" value=\"${actions.val(item)}\" checked=\"checked\"><div class=\"item-inner\"><div class=\"item-title\">${actions.name(item)}</div></div></label></li></ul></div></template>";
 });
 
 })();
 "use strict";
 
-System.register("app/components/cselect.js", ["aurelia-framework"], function (_export, _context) {
+System.register("app/components/cselect-popup.js", [], function (_export, _context) {
   "use strict";
 
-  var bindable, bindingMode, computedFrom, _createClass, _dec, _dec2, _dec3, _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, CselectCustomElement;
+  var CselectPopup;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  return {
+    setters: [],
+    execute: function () {
+      _export("CselectPopup", CselectPopup = function () {
+        function CselectPopup() {
+          _classCallCheck(this, CselectPopup);
+        }
+
+        CselectPopup.prototype.activate = function activate(model) {
+          this.actions = model.actions;
+          this.list = model.list;
+          this.name = model.name;
+          this.radioChecked = {};
+        };
+
+        CselectPopup.prototype.isSelected = function isSelected(item) {
+          return this.actions.isSelected(item);
+        };
+
+        CselectPopup.prototype.updateValue = function updateValue($event) {
+          var label = $event.target.parentElement;
+          if (label.className == "item-inner") {
+            label = label.parentElement;
+          }
+          var input = label.firstElementChild;
+          var newVal = input.value;
+          var radio = this.radioChecked[this.selectedId];
+          if (radio) {
+            radio.checked = false;
+          }
+          this.selectedId = input.id;
+          this.radioChecked[this.selectedId] = input;
+          this.radioChecked[this.selectedId].checked = true;
+          var title = input.dataset.title;
+          this.actions.update(newVal, title);
+        };
+
+        return CselectPopup;
+      }());
+
+      _export("CselectPopup", CselectPopup);
+    }
+  };
+});
+
+(function() {
+var define = System.amdDefine;
+define("app/components/cselect.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template><div class=\"list-block pointer\"><ul class=\"no-top-bottom-border\"><li><a click.delegate=\"openSelect()\" class=\"item-link smart-select\"><div class=\"item-content\"><div class=\"item-inner\"><!-- Select label --><div class=\"item-title\">${title}</div><span if.bind=\"showEmpty\">${emptyText}</span> <span if.bind=\"showBlank\">${blankText}</span><div class=\"item-after\">${valueLabel}</div></div></div></a></li></ul></div></template>";
+});
+
+})();
+'use strict';
+
+System.register('app/components/cselect.js', ['aurelia-framework', 'app/app-base'], function (_export, _context) {
+  "use strict";
+
+  var bindable, bindingMode, computedFrom, AppBase, _createClass, _dec, _dec2, _dec3, _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, _descriptor7, CselectCustomElement;
 
   function _initDefineProp(target, property, descriptor, context) {
     if (!descriptor) return;
@@ -1352,6 +1426,30 @@ System.register("app/components/cselect.js", ["aurelia-framework"], function (_e
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
   function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
@@ -1392,6 +1490,8 @@ System.register("app/components/cselect.js", ["aurelia-framework"], function (_e
       bindable = _aureliaFramework.bindable;
       bindingMode = _aureliaFramework.bindingMode;
       computedFrom = _aureliaFramework.computedFrom;
+    }, function (_appAppBase) {
+      AppBase = _appAppBase.AppBase;
     }],
     execute: function () {
       _createClass = function () {
@@ -1412,21 +1512,35 @@ System.register("app/components/cselect.js", ["aurelia-framework"], function (_e
         };
       }();
 
-      _export("CselectCustomElement", CselectCustomElement = (_dec = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec2 = computedFrom("options", "emptyText"), _dec3 = computedFrom("blankText"), (_class = function () {
+      _export('CselectCustomElement', CselectCustomElement = (_dec = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec2 = computedFrom("options", "emptyText", "value"), _dec3 = computedFrom("blankText", "value"), (_class = function (_AppBase) {
+        _inherits(CselectCustomElement, _AppBase);
+
         function CselectCustomElement() {
+          var _temp, _this, _ret;
+
           _classCallCheck(this, CselectCustomElement);
 
-          _initDefineProp(this, "accessor", _descriptor, this);
+          for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+          }
 
-          _initDefineProp(this, "options", _descriptor2, this);
-
-          _initDefineProp(this, "emptyText", _descriptor3, this);
-
-          _initDefineProp(this, "blankText", _descriptor4, this);
-
-          _initDefineProp(this, "formControl", _descriptor5, this);
-
-          _initDefineProp(this, "value", _descriptor6, this);
+          return _ret = (_temp = (_this = _possibleConstructorReturn(this, _AppBase.call.apply(_AppBase, [this].concat(args))), _this), _initDefineProp(_this, 'accessor', _descriptor, _this), _initDefineProp(_this, 'options', _descriptor2, _this), _initDefineProp(_this, 'emptyText', _descriptor3, _this), _initDefineProp(_this, 'title', _descriptor4, _this), _initDefineProp(_this, 'blankText', _descriptor5, _this), _initDefineProp(_this, 'valueLabel', _descriptor6, _this), _initDefineProp(_this, 'value', _descriptor7, _this), _this.selectPopupView = "app/components/cselect-popup", _this.actions = {
+            val: function val(item) {
+              return _this.val(item);
+            },
+            isSelected: function isSelected(item) {
+              return _this.val(item) == _this.value;
+            },
+            name: function name(item) {
+              return _this.name(item);
+            },
+            update: function update(newValue, label) {
+              return (_this.value = newValue) && (_this.valueLabel = label);
+            },
+            closePopup: function closePopup() {
+              return _this.app.appContext.closeNPopup();
+            }
+          }, _temp), _possibleConstructorReturn(_this, _ret);
         }
 
         CselectCustomElement.prototype.val = function val(option) {
@@ -1437,9 +1551,15 @@ System.register("app/components/cselect.js", ["aurelia-framework"], function (_e
           }
         };
 
-        CselectCustomElement.prototype.klass = function klass() {
-          var controlClass = this.formControl ? "form-control" : "";
-          return controlClass + " c-select";
+        CselectCustomElement.prototype.bind = function bind() {
+          this.popupModel = {
+            list: this.options,
+            name: this.title,
+            actions: this.actions
+          };
+          if (!this.valueLabel) {
+            this.valueLabel = this.value;
+          }
         };
 
         CselectCustomElement.prototype.name = function name(option) {
@@ -1450,46 +1570,51 @@ System.register("app/components/cselect.js", ["aurelia-framework"], function (_e
           }
         };
 
+        CselectCustomElement.prototype.openSelect = function openSelect() {
+          this.app.appContext.showNPopup(this.selectPopupView, this.popupModel);
+        };
+
         _createClass(CselectCustomElement, [{
-          key: "showEmpty",
+          key: 'showEmpty',
           get: function get() {
-            if (this.options && this.emptyText) {
+            if (this.options && this.emptyText && !this.value) {
               return this.options.length == 0 && this.emptyText.length > 0;
             }
           }
         }, {
-          key: "showBlank",
+          key: 'showBlank',
           get: function get() {
-            if (this.blankText) {
+            if (this.blankText && !this.value) {
               return this.blankText.length > 0;
             }
           }
         }]);
 
         return CselectCustomElement;
-      }(), (_descriptor = _applyDecoratedDescriptor(_class.prototype, "accessor", [bindable], {
+      }(AppBase), (_descriptor = _applyDecoratedDescriptor(_class.prototype, 'accessor', [bindable], {
         enumerable: true,
         initializer: null
-      }), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, "options", [bindable], {
+      }), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, 'options', [bindable], {
         enumerable: true,
         initializer: null
-      }), _descriptor3 = _applyDecoratedDescriptor(_class.prototype, "emptyText", [bindable], {
+      }), _descriptor3 = _applyDecoratedDescriptor(_class.prototype, 'emptyText', [bindable], {
         enumerable: true,
         initializer: null
-      }), _descriptor4 = _applyDecoratedDescriptor(_class.prototype, "blankText", [bindable], {
+      }), _descriptor4 = _applyDecoratedDescriptor(_class.prototype, 'title', [bindable], {
         enumerable: true,
         initializer: null
-      }), _descriptor5 = _applyDecoratedDescriptor(_class.prototype, "formControl", [bindable], {
-        enumerable: true,
-        initializer: function initializer() {
-          return true;
-        }
-      }), _descriptor6 = _applyDecoratedDescriptor(_class.prototype, "value", [_dec], {
+      }), _descriptor5 = _applyDecoratedDescriptor(_class.prototype, 'blankText', [bindable], {
         enumerable: true,
         initializer: null
-      }), _applyDecoratedDescriptor(_class.prototype, "showEmpty", [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, "showEmpty"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "showBlank", [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, "showBlank"), _class.prototype)), _class)));
+      }), _descriptor6 = _applyDecoratedDescriptor(_class.prototype, 'valueLabel', [bindable], {
+        enumerable: true,
+        initializer: null
+      }), _descriptor7 = _applyDecoratedDescriptor(_class.prototype, 'value', [_dec], {
+        enumerable: true,
+        initializer: null
+      }), _applyDecoratedDescriptor(_class.prototype, 'showEmpty', [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, 'showEmpty'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'showBlank', [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, 'showBlank'), _class.prototype)), _class)));
 
-      _export("CselectCustomElement", CselectCustomElement);
+      _export('CselectCustomElement', CselectCustomElement);
     }
   };
 });
@@ -1911,6 +2036,106 @@ define("app/components/form-element.html!github:systemjs/plugin-text@0.0.9.js", 
 })();
 (function() {
 var define = System.amdDefine;
+define("app/components/loader.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template><span show.bind=\"isLoading\" class=\"preloader preloader-big\"></span></template>";
+});
+
+})();
+'use strict';
+
+System.register('app/components/loader.js', ['app/app', 'aurelia-framework'], function (_export, _context) {
+  "use strict";
+
+  var App, computedFrom, _createClass, _dec, _desc, _value, _class, Loader;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+      desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+      desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+      return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+      desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+      desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+      Object['define' + 'Property'](target, property, desc);
+      desc = null;
+    }
+
+    return desc;
+  }
+
+  return {
+    setters: [function (_appApp) {
+      App = _appApp.App;
+    }, function (_aureliaFramework) {
+      computedFrom = _aureliaFramework.computedFrom;
+    }],
+    execute: function () {
+      _createClass = function () {
+        function defineProperties(target, props) {
+          for (var i = 0; i < props.length; i++) {
+            var descriptor = props[i];
+            descriptor.enumerable = descriptor.enumerable || false;
+            descriptor.configurable = true;
+            if ("value" in descriptor) descriptor.writable = true;
+            Object.defineProperty(target, descriptor.key, descriptor);
+          }
+        }
+
+        return function (Constructor, protoProps, staticProps) {
+          if (protoProps) defineProperties(Constructor.prototype, protoProps);
+          if (staticProps) defineProperties(Constructor, staticProps);
+          return Constructor;
+        };
+      }();
+
+      _export('Loader', Loader = (_dec = computedFrom("app.appContext.api.isRequesting", "app.appContext.net.isRequesting"), (_class = function () {
+        Loader.inject = function inject() {
+          return [App];
+        };
+
+        function Loader(app) {
+          _classCallCheck(this, Loader);
+
+          this.app = app;
+        }
+
+        _createClass(Loader, [{
+          key: 'isLoading',
+          get: function get() {
+            return this.app.appContext.api.isRequesting || this.app.appContext.net.isRequesting;
+          }
+        }]);
+
+        return Loader;
+      }(), _applyDecoratedDescriptor(_class.prototype, 'isLoading', [_dec], Object.getOwnPropertyDescriptor(_class.prototype, 'isLoading'), _class.prototype), _class)));
+
+      _export('Loader', Loader);
+    }
+  };
+});
+
+(function() {
+var define = System.amdDefine;
 define("app/components/nav-bar.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
   return "<template><compose if.bind=\"hasNavBarView\" view-model.bind=\"navBarView\"></compose></template>";
 });
@@ -1996,7 +2221,7 @@ System.register("app/components/nav-bar.js", ["aurelia-framework"], function (_e
         };
       }();
 
-      NAV_BARS = ["trips", "active-trip", "parties", "trips/show"];
+      NAV_BARS = ["trips", "show-archived", "active-trip", "show-trip", "show-party", "parties", "trips/show"];
 
       hasNavBar = function hasNavBar(page) {
         return NAV_BARS.includes(page);
@@ -2090,7 +2315,7 @@ System.register('app/components/nav-bars/active-trip.js', ['./base', 'aurelia-fr
         }
 
         return Trips;
-      }(Base), _class2.header = "Active Trip", _temp)) || _class));
+      }(Base), _class2.header = "Active Trip", _class2.hasSubNavBar = false, _temp)) || _class));
 
       _export('Trips', Trips);
     }
@@ -2100,7 +2325,7 @@ System.register('app/components/nav-bars/active-trip.js', ['./base', 'aurelia-fr
 (function() {
 var define = System.amdDefine;
 define("app/components/nav-bars/base.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left sliding\">${header} <span if.bind=\"canAdd\" class=\"ml10\"><a click.delegate=\"addResource()\" class=\"link pointer\"><i class=\"f7-icons\">add_round</i></a></span></div><div class=\"center\"><a click.delegate=\"logout()\" class=\"link logout-link pointer\">Logout</a></div><div class=\"right\"><div class=\"nav-circle\">${authContext.currentUser.initials}</div></div></div><div if.bind=\"canAdd\" class=\"subnavbar\"><div class=\"buttons-row\"><a click.delegate=\"startTrip()\" if.bind=\"canStartTrip\" class=\"button button-raised pointer\">Start Trip</a> <a click.delegate=\"startTrip()\" if.bind=\"!canStartTrip\" class=\"button button-raised pointer\" disabled=\"disabled\">Start Trip</a> <a class=\"button button-raised pointer\" click.delegate=\"editParty()\" if.bind=\"canEdit\"><i class=\"f7-icons\">compose</i></a> <a class=\"button button-raised pointer\" if.bind=\"!canEdit\"><i class=\"f7-icons\" disabled=\"disabled\">compose</i></a> <a click.delegate=\"archiveParty()\" class=\"button button-raised pointer\" if.bind=\"canArchive\"><i class=\"f7-icons\">delete_round</i></a> <a class=\"button button-raised pointer\" if.bind=\"!canArchive\"><i class=\"f7-icons\" disabled=\"disabled\">delete_round</i></a></div></div></div></template>";
+  return "<template><require from=\"app/components/loader\"></require><require from=\"app/components/back.html\"></require><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left\"><span if.bind=\"onShowParty\" class=\"ml10\"><back title=\"Parties\" action.call=\"navParties()\"></back></span><span if.bind=\"onShowArchived\" class=\"ml10\"><back title=\"Trips\" action.call=\"navTrips()\"></back></span><span if.bind=\"onShowTrip\" class=\"ml10\"><back title=\"Trips\" action.call=\"navTrips()\"></back></span></div><div class=\"center sliding\">${header}</div><div class=\"right\"><loader class=\"mr20\"></loader><a click.delegate=\"logout()\" class=\"link logout-link pointer\"><i class=\"f7-icons\">logout</i></a><div class=\"ml10 nav-circle\">${authContext.currentUser.initials}</div></div></div><div if.bind=\"hasSubNavBar\" class=\"subnavbar\"><div class=\"buttons-row\"><a click.delegate=\"addResource()\" if.bind=\"canAdd && !editable\" class=\"button button-raised pointer\"><i class=\"f7-icons\">add_round</i> </a><a click.delegate=\"startTrip()\" if.bind=\"canStartTrip && !onShowParty && onParties\" class=\"button button-raised pointer\">Start Trip</a> <a click.delegate=\"startTrip()\" if.bind=\"!canStartTrip && !onShowParty && onParties\" class=\"button button-raised pointer\" disabled=\"disabled\">Start Trip</a> <a class=\"button button-raised pointer\" click.delegate=\"editParty()\" if.bind=\"canEdit && editable\"><i class=\"f7-icons\">compose</i></a> <a class=\"button button-raised pointer\" if.bind=\"!canEdit && editable\"><i class=\"f7-icons\" disabled=\"disabled\">compose</i></a> <a click.delegate=\"archiveParty()\" class=\"button button-raised pointer\" if.bind=\"canArchive && editable\"><i class=\"f7-icons\">delete_round</i></a> <a class=\"button button-raised pointer\" if.bind=\"!canArchive && editable\"><i class=\"f7-icons\" disabled=\"disabled\">delete_round</i></a></div></div></div></template>";
 });
 
 })();
@@ -2158,9 +2383,216 @@ System.register('app/components/nav-bars/parties.js', ['./base', 'aurelia-framew
         }
 
         return Parties;
-      }(Base), _class2.header = "Parties", _class2.addView = "app/parties/add-party", _class2.startTripView = "app/components/trips/confirm-start", _class2.addViewModel = {}, _temp)) || _class));
+      }(Base), _class2.header = "Parties", _class2.onParties = true, _class2.addView = "app/parties/add-party", _class2.startTripView = "app/components/trips/confirm-start", _class2.addViewModel = {}, _temp)) || _class));
 
       _export('Parties', Parties);
+    }
+  };
+});
+
+'use strict';
+
+System.register('app/components/nav-bars/show-archived.js', ['./base', 'aurelia-framework'], function (_export, _context) {
+  "use strict";
+
+  var Base, useView, _dec, _class, _class2, _temp, ShowArchived;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  return {
+    setters: [function (_base) {
+      Base = _base.Base;
+    }, function (_aureliaFramework) {
+      useView = _aureliaFramework.useView;
+    }],
+    execute: function () {
+      _export('ShowArchived', ShowArchived = (_dec = useView("app/components/nav-bars/base.html"), _dec(_class = (_temp = _class2 = function (_Base) {
+        _inherits(ShowArchived, _Base);
+
+        function ShowArchived() {
+          _classCallCheck(this, ShowArchived);
+
+          return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+        }
+
+        ShowArchived.prototype.attached = function attached() {
+          this.header = 'Party: ' + this.appContext.selectedParty.paddedNumber;
+        };
+
+        ShowArchived.prototype.navTrips = function navTrips() {
+          this.app.router.navigateToRoute("trips");
+        };
+
+        return ShowArchived;
+      }(Base), _class2.header = "Archived", _class2.onShowTrip = true, _class2.hasSubNavBar = false, _temp)) || _class));
+
+      _export('ShowArchived', ShowArchived);
+    }
+  };
+});
+
+'use strict';
+
+System.register('app/components/nav-bars/show-party.js', ['./base', 'aurelia-framework'], function (_export, _context) {
+  "use strict";
+
+  var Base, useView, _dec, _class, _class2, _temp, ShowParty;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  return {
+    setters: [function (_base) {
+      Base = _base.Base;
+    }, function (_aureliaFramework) {
+      useView = _aureliaFramework.useView;
+    }],
+    execute: function () {
+      _export('ShowParty', ShowParty = (_dec = useView("app/components/nav-bars/base.html"), _dec(_class = (_temp = _class2 = function (_Base) {
+        _inherits(ShowParty, _Base);
+
+        function ShowParty() {
+          _classCallCheck(this, ShowParty);
+
+          return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+        }
+
+        ShowParty.prototype.attached = function attached() {
+          this.header = 'Party: ' + this.appContext.selectedParty.paddedNumber;
+        };
+
+        ShowParty.prototype.navParties = function navParties() {
+          this.app.router.navigateToRoute("parties");
+        };
+
+        return ShowParty;
+      }(Base), _class2.header = "Party", _class2.editable = true, _class2.onShowParty = true, _class2.addView = "app/parties/add-party", _temp)) || _class));
+
+      _export('ShowParty', ShowParty);
+    }
+  };
+});
+
+'use strict';
+
+System.register('app/components/nav-bars/show-trip.js', ['./base', 'aurelia-framework'], function (_export, _context) {
+  "use strict";
+
+  var Base, useView, _dec, _class, _class2, _temp, ShowTrip;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  return {
+    setters: [function (_base) {
+      Base = _base.Base;
+    }, function (_aureliaFramework) {
+      useView = _aureliaFramework.useView;
+    }],
+    execute: function () {
+      _export('ShowTrip', ShowTrip = (_dec = useView("app/components/nav-bars/base.html"), _dec(_class = (_temp = _class2 = function (_Base) {
+        _inherits(ShowTrip, _Base);
+
+        function ShowTrip() {
+          _classCallCheck(this, ShowTrip);
+
+          return _possibleConstructorReturn(this, _Base.apply(this, arguments));
+        }
+
+        ShowTrip.prototype.attached = function attached() {
+          this.header = 'Trip: ' + this.appContext.selectedTrip.paddedNumber;
+        };
+
+        ShowTrip.prototype.navTrips = function navTrips() {
+          this.app.router.navigateToRoute("trips");
+        };
+
+        return ShowTrip;
+      }(Base), _class2.header = "Trip", _class2.onShowTrip = true, _class2.hasSubNavBar = false, _temp)) || _class));
+
+      _export('ShowTrip', ShowTrip);
     }
   };
 });
@@ -2170,7 +2602,7 @@ System.register('app/components/nav-bars/parties.js', ['./base', 'aurelia-framew
 System.register('app/components/nav-bars/base.js', ['app/auth-context', 'app/app-context', 'aurelia-framework', 'app/f7', 'app/notifier', 'app/app'], function (_export, _context) {
   "use strict";
 
-  var AuthContext, AppContext, computedFrom, f7, Notifier, App, _createClass, _dec, _desc, _value, _class, ensureSingleRowSelected, Base;
+  var AuthContext, AppContext, computedFrom, f7, Notifier, App, _createClass, _dec, _dec2, _dec3, _desc, _value, _class, Base;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -2240,18 +2672,7 @@ System.register('app/components/nav-bars/base.js', ['app/auth-context', 'app/app
         };
       }();
 
-      ensureSingleRowSelected = function ensureSingleRowSelected(action) {
-        if (this.appContext.selectedRows.size > 1) {
-          this.notifier.danger("Please make a single selection for this action.");
-        } else {
-          if (this.appContext.selectedRows.size == 1) {
-            this.appContext.selectedParty = this.appContext.selectedRows.values().next().value;
-            action();
-          }
-        }
-      };
-
-      _export('Base', Base = (_dec = computedFrom("appContext.selectedRows.size"), (_class = function () {
+      _export('Base', Base = (_dec = computedFrom("editable"), _dec2 = computedFrom("appContext.selectedRows.size"), _dec3 = computedFrom("editable"), (_class = function () {
         Base.inject = function inject() {
           return [AuthContext, AppContext, Notifier, App];
         };
@@ -2264,9 +2685,18 @@ System.register('app/components/nav-bars/base.js', ['app/auth-context', 'app/app
           this.appContext = appContext;
           this.notifier = notifier;
           this.app = app;
+          this.hasSubNavBar = this.constructor.hasSubNavBar;
+          if (this.hasSubNavBar === undefined) {
+            this.hasSubNavBar = true;
+          }
           this.addViewModel = this.constructor.addViewModel;
           this.addView = this.constructor.addView;
+          this.editable = this.constructor.editable || false;
+          this.onShowTrip = this.constructor.onShowTrip || false;
+          this.onShowParty = this.constructor.onShowParty || false;
+          this.onParties = this.constructor.onParties || false;
           this.startTripView = this.constructor.startTripView;
+          console.log('hasSubNavBar', this.hasSubNavBar);
         }
 
         Base.prototype.logout = function logout() {
@@ -2288,40 +2718,34 @@ System.register('app/components/nav-bars/base.js', ['app/auth-context', 'app/app
         Base.prototype.archiveParty = function archiveParty() {
           var _this = this;
 
-          ensureSingleRowSelected.call(this, function () {
-            if (_this.canArchive) {
-              var message = 'Are you sure you want to archive ' + _this.appContext.selectedParty.paddedNumber + ' ?';
-              f7.confirm(message, 'Archive Party', function () {
-                _this.appContext.partyController.actionTrigger.delete(_this.appContext.selectedParty);
-              });
-            }
-          });
+          if (this.canArchive) {
+            var message = 'Are you sure you want to archive ' + this.appContext.selectedParty.paddedNumber + ' ?';
+            f7.confirm(message, 'Archive Party', function () {
+              _this.appContext.partyController.actionTrigger.delete(_this.appContext.selectedParty);
+            });
+          }
         };
 
         Base.prototype.editParty = function editParty() {
-          var _this2 = this;
-
-          ensureSingleRowSelected.call(this, function () {
-            if (_this2.canEdit) {
-              _this2.appContext.showPopup(_this2.addView, _this2.appContext.selectedParty);
-            }
-          });
+          if (this.canEdit) {
+            this.appContext.showPopup(this.addView, this.appContext.selectedParty);
+          }
         };
 
         _createClass(Base, [{
           key: 'canEdit',
           get: function get() {
-            return true;
+            return this.editable;
           }
         }, {
           key: 'canStartTrip',
           get: function get() {
-            return this.appContext.selectedRows.size > 0;
+            return this.appContext.selectedRows && this.appContext.selectedRows.size > 0;
           }
         }, {
           key: 'canArchive',
           get: function get() {
-            return true;
+            return this.editable;
           }
         }, {
           key: 'canAdd',
@@ -2331,7 +2755,7 @@ System.register('app/components/nav-bars/base.js', ['app/auth-context', 'app/app
         }]);
 
         return Base;
-      }(), _applyDecoratedDescriptor(_class.prototype, 'canStartTrip', [_dec], Object.getOwnPropertyDescriptor(_class.prototype, 'canStartTrip'), _class.prototype), _class)));
+      }(), (_applyDecoratedDescriptor(_class.prototype, 'canEdit', [_dec], Object.getOwnPropertyDescriptor(_class.prototype, 'canEdit'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'canStartTrip', [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, 'canStartTrip'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'canArchive', [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, 'canArchive'), _class.prototype)), _class)));
 
       _export('Base', Base);
     }
@@ -2392,7 +2816,7 @@ System.register('app/components/nav-bars/trips.js', ['./base', 'aurelia-framewor
         }
 
         return Trips;
-      }(Base), _class2.header = "Trips", _temp)) || _class));
+      }(Base), _class2.header = "Trips", _class2.hasSubNavBar = false, _temp)) || _class));
 
       _export('Trips', Trips);
     }
@@ -2507,24 +2931,24 @@ System.register('app/components/nav-bars/trips/show.js', ['aurelia-framework', '
 
 (function() {
 var define = System.amdDefine;
-define("app/components/parties/party-header.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><div class=\"col-auto\"></div><div class=\"col-auto pointer\">Party #</div><div class=\"col-auto pointer\">Status</div><div class=\"col-auto pointer\">Pickup</div><div class=\"col-auto pointer\">Destination</div><div class=\"col-auto pointer\">Date</div><div class=\"col-auto pointer\">Departure <i class=\"f7-icons size-14\">time</i></div><div class=\"col-auto pointer\">Arrival <i class=\"f7-icons size-14\">time</i></div><div class=\"col-auto pointer\">Contact #</div><div class=\"col-auto pointer\">Party Name</div></template>";
+define("app/components/nav-popup.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template bindable=\"heading, actions\"><require from=\"app/components/back.html\"></require><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left\"><back action.call=\"actions.closePopup()\"></back></div><div class=\"center\" style=\"left: 0px\">${heading}</div><div class=\"right\"></div></div></div></template>";
 });
 
 })();
 (function() {
 var define = System.amdDefine;
-define("app/components/parties/party-list.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"./party.html\"></require><require from=\"./party-header.html\"></require><div class=\"list-block cards-list\"><ul><li class=\"card\" repeat.for=\"party of parties\"><div class=\"card-header\"><span>${party.paddedNumber}</span> <input id=\"checkbox-${party.id}\" type=\"checkbox\" click.delegate=\"selectRow(party, $event)\" checked.bind=\"rowChecked[party.id]\"></div><div class=\"card-content\"><div class=\"list-block\"><ul><li class=\"item-content\" repeat.for=\"header of headers\"><div class=\"item-inner\"><div class=\"item-title\">${header}</div><div class=\"item-after\">${headerVal($index, party)}</div></div></li></ul></div></div></li></ul></div></template>";
+define("app/components/nselect.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template><select value.bind=\"value\"><option value=\"\" if.bind=\"showEmpty\">${emptyText}</option><option value=\"\" if.bind=\"showBlank\">${blankText}</option><option repeat.for=\"option of options\" value=\"${val(option)}\">${name(option)}</option></select></template>";
 });
 
 })();
-'use strict';
+"use strict";
 
-System.register('app/components/parties/party-list.js', ['aurelia-framework', 'app/app-context', 'app/utils', 'app/models/party', 'app/utils/table'], function (_export, _context) {
+System.register("app/components/nselect.js", ["aurelia-framework"], function (_export, _context) {
   "use strict";
 
-  var bindable, AppContext, Utils, PartyModel, TableUtils, _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, PartyList;
+  var bindable, bindingMode, computedFrom, _createClass, _dec, _dec2, _dec3, _desc, _value, _class, _descriptor, _descriptor2, _descriptor3, _descriptor4, _descriptor5, _descriptor6, NselectCustomElement;
 
   function _initDefineProp(target, property, descriptor, context) {
     if (!descriptor) return;
@@ -2578,8 +3002,204 @@ System.register('app/components/parties/party-list.js', ['aurelia-framework', 'a
   return {
     setters: [function (_aureliaFramework) {
       bindable = _aureliaFramework.bindable;
-    }, function (_appAppContext) {
-      AppContext = _appAppContext.AppContext;
+      bindingMode = _aureliaFramework.bindingMode;
+      computedFrom = _aureliaFramework.computedFrom;
+    }],
+    execute: function () {
+      _createClass = function () {
+        function defineProperties(target, props) {
+          for (var i = 0; i < props.length; i++) {
+            var descriptor = props[i];
+            descriptor.enumerable = descriptor.enumerable || false;
+            descriptor.configurable = true;
+            if ("value" in descriptor) descriptor.writable = true;
+            Object.defineProperty(target, descriptor.key, descriptor);
+          }
+        }
+
+        return function (Constructor, protoProps, staticProps) {
+          if (protoProps) defineProperties(Constructor.prototype, protoProps);
+          if (staticProps) defineProperties(Constructor, staticProps);
+          return Constructor;
+        };
+      }();
+
+      _export("NselectCustomElement", NselectCustomElement = (_dec = bindable({ defaultBindingMode: bindingMode.twoWay }), _dec2 = computedFrom("options", "emptyText"), _dec3 = computedFrom("blankText"), (_class = function () {
+        function NselectCustomElement() {
+          _classCallCheck(this, NselectCustomElement);
+
+          _initDefineProp(this, "accessor", _descriptor, this);
+
+          _initDefineProp(this, "options", _descriptor2, this);
+
+          _initDefineProp(this, "emptyText", _descriptor3, this);
+
+          _initDefineProp(this, "blankText", _descriptor4, this);
+
+          _initDefineProp(this, "formControl", _descriptor5, this);
+
+          _initDefineProp(this, "value", _descriptor6, this);
+        }
+
+        NselectCustomElement.prototype.val = function val(option) {
+          if (this.accessor) {
+            return this.accessor.val(option);
+          } else {
+            return option.id || option.value || option;
+          }
+        };
+
+        NselectCustomElement.prototype.name = function name(option) {
+          if (this.accessor) {
+            return this.accessor.name(option);
+          } else {
+            return option.name || option;
+          }
+        };
+
+        _createClass(NselectCustomElement, [{
+          key: "showEmpty",
+          get: function get() {
+            if (this.options && this.emptyText) {
+              return this.options.length == 0 && this.emptyText.length > 0;
+            }
+          }
+        }, {
+          key: "showBlank",
+          get: function get() {
+            if (this.blankText) {
+              return this.blankText.length > 0;
+            }
+          }
+        }]);
+
+        return NselectCustomElement;
+      }(), (_descriptor = _applyDecoratedDescriptor(_class.prototype, "accessor", [bindable], {
+        enumerable: true,
+        initializer: null
+      }), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, "options", [bindable], {
+        enumerable: true,
+        initializer: null
+      }), _descriptor3 = _applyDecoratedDescriptor(_class.prototype, "emptyText", [bindable], {
+        enumerable: true,
+        initializer: null
+      }), _descriptor4 = _applyDecoratedDescriptor(_class.prototype, "blankText", [bindable], {
+        enumerable: true,
+        initializer: null
+      }), _descriptor5 = _applyDecoratedDescriptor(_class.prototype, "formControl", [bindable], {
+        enumerable: true,
+        initializer: function initializer() {
+          return true;
+        }
+      }), _descriptor6 = _applyDecoratedDescriptor(_class.prototype, "value", [_dec], {
+        enumerable: true,
+        initializer: null
+      }), _applyDecoratedDescriptor(_class.prototype, "showEmpty", [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, "showEmpty"), _class.prototype), _applyDecoratedDescriptor(_class.prototype, "showBlank", [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, "showBlank"), _class.prototype)), _class)));
+
+      _export("NselectCustomElement", NselectCustomElement);
+    }
+  };
+});
+
+(function() {
+var define = System.amdDefine;
+define("app/components/parties/party-header.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template><div class=\"col-auto\"></div><div class=\"col-auto pointer\">Party #</div><div class=\"col-auto pointer\">Status</div><div class=\"col-auto pointer\">Pickup</div><div class=\"col-auto pointer\">Destination</div><div class=\"col-auto pointer\">Date</div><div class=\"col-auto pointer\">Departure <i class=\"f7-icons size-14\">time</i></div><div class=\"col-auto pointer\">Arrival <i class=\"f7-icons size-14\">time</i></div><div class=\"col-auto pointer\">Contact #</div><div class=\"col-auto pointer\">Party Name</div></template>";
+});
+
+})();
+(function() {
+var define = System.amdDefine;
+define("app/components/parties/party-list.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template><div id=\"parties\" class=\"list-block media-list\"><ul><li repeat.for=\"party of parties\"><a class=\"item-link pointer item-content\"><div class=\"item-media\"><input id=\"${selectedId(party)}\" type=\"checkbox\" click.delegate=\"selectRow(party, $event)\" checked.bind=\"rowChecked[party.id]\"></div><div class=\"item-inner\" click.delegate=\"showParty(party)\"><div class=\"item-title-row\"><div class=\"item-title\">${party.partyName}</div><div class=\"item-after\">${party.partySize}</div></div><div class=\"item-subtitle\">${party.paddedNumber}</div><div class=\"item-text\"><div class=\"row\"><p>${party.date} ${party.departure}</p><p>Pickup: ${party.pickup}</p></div></div></div></a></li></ul></div></template>";
+});
+
+})();
+'use strict';
+
+System.register('app/components/parties/party-list.js', ['aurelia-framework', 'app/app-base', 'app/utils', 'app/models/party', 'app/utils/table'], function (_export, _context) {
+  "use strict";
+
+  var bindable, AppBase, Utils, PartyModel, TableUtils, _desc, _value, _class, _descriptor, PartyList;
+
+  function _initDefineProp(target, property, descriptor, context) {
+    if (!descriptor) return;
+    Object.defineProperty(target, property, {
+      enumerable: descriptor.enumerable,
+      configurable: descriptor.configurable,
+      writable: descriptor.writable,
+      value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
+    });
+  }
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+      desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+      desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+      return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+      desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+      desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+      Object['define' + 'Property'](target, property, desc);
+      desc = null;
+    }
+
+    return desc;
+  }
+
+  function _initializerWarningHelper(descriptor, context) {
+    throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
+  }
+
+  return {
+    setters: [function (_aureliaFramework) {
+      bindable = _aureliaFramework.bindable;
+    }, function (_appAppBase) {
+      AppBase = _appAppBase.AppBase;
     }, function (_appUtils) {
       Utils = _appUtils.Utils;
     }, function (_appModelsParty) {
@@ -2588,55 +3208,47 @@ System.register('app/components/parties/party-list.js', ['aurelia-framework', 'a
       TableUtils = _appUtilsTable.TableUtils;
     }],
     execute: function () {
-      _export('PartyList', PartyList = (_class = function () {
-        PartyList.inject = function inject() {
-          return [AppContext];
-        };
+      _export('PartyList', PartyList = (_class = function (_AppBase) {
+        _inherits(PartyList, _AppBase);
 
-        function PartyList(appContext) {
+        function PartyList() {
+          var _temp, _this, _ret;
+
           _classCallCheck(this, PartyList);
 
-          _initDefineProp(this, 'edited', _descriptor, this);
+          for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+          }
 
-          _initDefineProp(this, 'parties', _descriptor2, this);
-
-          _initDefineProp(this, 'actions', _descriptor3, this);
-
-          this.headers = {
-            partySize: "# in Party"
-          };
-          this.accessors = {
-            "partyNumber": function partyNumber(party) {
-              return party.paddedNumber;
-            }
-          };
-          this.props = ["partyNumber", "status", "pickup", "destination", "date", "departure", "partySize", "contactNumber", "partyName"];
-          this.appContext = appContext;
+          return _ret = (_temp = (_this = _possibleConstructorReturn(this, _AppBase.call.apply(_AppBase, [this].concat(args))), _this), _initDefineProp(_this, 'parties', _descriptor, _this), _temp), _possibleConstructorReturn(_this, _ret);
         }
 
-        PartyList.prototype.editedChanged = function editedChanged() {
-          var _this = this;
-
-          if (this.appContext.selectedParty) {
-            Utils.forEachModelProp(PartyModel, function (prop) {
-              _this.appContext.selectedParty[prop] = _this.edited[prop];
-            });
-          }
-        };
-
-        PartyList.prototype.headerVal = function headerVal(propIndex, party) {
-          var prop = this.props[propIndex];
-          if (this.accessors[prop]) {
-            return this.accessors[prop](party);
-          } else {
-            return party[prop];
-          }
-        };
-
         PartyList.prototype.bind = function bind() {
+          var _this2 = this;
+
           this.selectedRows = new Map();
           this.rowChecked = [];
-          this.headers = TableUtils.headersFromProperties(this.props, this.headers || {});
+          this.selectedPartyActions = {
+            partySelected: function partySelected(selectedRows) {
+              _this2.app.appContext.selectedRows = selectedRows;
+              return true;
+            },
+            partyDeleted: function partyDeleted(party) {
+              _this2.app.appContext.selectedParty = undefined;
+              _this2.app.appContext.selectedRows.delete(_this2.selectedId(party));
+            }
+          };
+          this.selectedPartyActions.partySelected(this.selectedRows);
+          this.app.appContext.selectedPartyActions = this.selectedPartyActions;
+        };
+
+        PartyList.prototype.selectedId = function selectedId(party) {
+          return "checkbox-${party.id}";
+        };
+
+        PartyList.prototype.showParty = function showParty(party) {
+          this.app.appContext.selectedParty = party;
+          this.app.router.navigateToRoute("show-party");
         };
 
         PartyList.prototype.selectRow = function selectRow(row, event) {
@@ -2646,20 +3258,14 @@ System.register('app/components/parties/party-list.js', ['aurelia-framework', 'a
           } else {
             this.selectedRows.delete(eventTarget.id);
           }
-          return this.actions.partySelected(this.selectedRows);
+          return this.selectedPartyActions.partySelected(this.selectedRows);
         };
 
         return PartyList;
-      }(), (_descriptor = _applyDecoratedDescriptor(_class.prototype, 'edited', [bindable], {
+      }(AppBase), _descriptor = _applyDecoratedDescriptor(_class.prototype, 'parties', [bindable], {
         enumerable: true,
         initializer: null
-      }), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, 'parties', [bindable], {
-        enumerable: true,
-        initializer: null
-      }), _descriptor3 = _applyDecoratedDescriptor(_class.prototype, 'actions', [bindable], {
-        enumerable: true,
-        initializer: null
-      })), _class));
+      }), _class));
 
       _export('PartyList', PartyList);
     }
@@ -3467,109 +4073,16 @@ System.register('app/components/resource-table/tr-renderer.js', ['aurelia-framew
 (function() {
 var define = System.amdDefine;
 define("app/components/submit.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><div class=\"submit\"><a click.delegate=\"submit()\" class=\"button button-raised button-round\">${text}</a><center if.bind=\"isLoading\"><span class=\"preloader preloader-big\"></span></center></div></template>";
+  return "<template><require from=\"app/components/loader\"></require><div class=\"submit\"><a click.delegate=\"submit()\" class=\"button button-raised button-round\">${text}</a><center><loader></loader></center></div></template>";
 });
 
 })();
-'use strict';
+"use strict";
 
-System.register('app/loader.js', ['app/app', 'aurelia-framework'], function (_export, _context) {
+System.register("app/components/submit.js", ["aurelia-framework"], function (_export, _context) {
   "use strict";
 
-  var App, computedFrom, _createClass, _dec, _desc, _value, _class, Loader;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
-    var desc = {};
-    Object['ke' + 'ys'](descriptor).forEach(function (key) {
-      desc[key] = descriptor[key];
-    });
-    desc.enumerable = !!desc.enumerable;
-    desc.configurable = !!desc.configurable;
-
-    if ('value' in desc || desc.initializer) {
-      desc.writable = true;
-    }
-
-    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
-      return decorator(target, property, desc) || desc;
-    }, desc);
-
-    if (context && desc.initializer !== void 0) {
-      desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
-      desc.initializer = undefined;
-    }
-
-    if (desc.initializer === void 0) {
-      Object['define' + 'Property'](target, property, desc);
-      desc = null;
-    }
-
-    return desc;
-  }
-
-  return {
-    setters: [function (_appApp) {
-      App = _appApp.App;
-    }, function (_aureliaFramework) {
-      computedFrom = _aureliaFramework.computedFrom;
-    }],
-    execute: function () {
-      _createClass = function () {
-        function defineProperties(target, props) {
-          for (var i = 0; i < props.length; i++) {
-            var descriptor = props[i];
-            descriptor.enumerable = descriptor.enumerable || false;
-            descriptor.configurable = true;
-            if ("value" in descriptor) descriptor.writable = true;
-            Object.defineProperty(target, descriptor.key, descriptor);
-          }
-        }
-
-        return function (Constructor, protoProps, staticProps) {
-          if (protoProps) defineProperties(Constructor.prototype, protoProps);
-          if (staticProps) defineProperties(Constructor, staticProps);
-          return Constructor;
-        };
-      }();
-
-      _export('Loader', Loader = (_dec = computedFrom("app.appContext.api.isRequesting", "app.appContext.net.isRequesting"), (_class = function () {
-        Loader.inject = function inject() {
-          return [App];
-        };
-
-        function Loader(app) {
-          _classCallCheck(this, Loader);
-
-          this.app = app;
-        }
-
-        _createClass(Loader, [{
-          key: 'isLoading',
-          get: function get() {
-            return this.app.appContext.api.isRequesting || this.app.appContext.net.isRequesting;
-          }
-        }]);
-
-        return Loader;
-      }(), _applyDecoratedDescriptor(_class.prototype, 'isLoading', [_dec], Object.getOwnPropertyDescriptor(_class.prototype, 'isLoading'), _class.prototype), _class)));
-
-      _export('Loader', Loader);
-    }
-  };
-});
-
-'use strict';
-
-System.register('app/components/submit.js', ['aurelia-framework', 'app/loader'], function (_export, _context) {
-  "use strict";
-
-  var bindable, computedFrom, Loader, _desc, _value, _class, _descriptor, SubmitCustomElement;
+  var bindable, _desc, _value, _class, _descriptor, SubmitCustomElement;
 
   function _initDefineProp(target, property, descriptor, context) {
     if (!descriptor) return;
@@ -3585,30 +4098,6 @@ System.register('app/components/submit.js', ['aurelia-framework', 'app/loader'],
     if (!(instance instanceof Constructor)) {
       throw new TypeError("Cannot call a class as a function");
     }
-  }
-
-  function _possibleConstructorReturn(self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
-
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
-  }
-
-  function _inherits(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
-
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
   function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
@@ -3647,24 +4136,13 @@ System.register('app/components/submit.js', ['aurelia-framework', 'app/loader'],
   return {
     setters: [function (_aureliaFramework) {
       bindable = _aureliaFramework.bindable;
-      computedFrom = _aureliaFramework.computedFrom;
-    }, function (_appLoader) {
-      Loader = _appLoader.Loader;
     }],
     execute: function () {
-      _export('SubmitCustomElement', SubmitCustomElement = (_class = function (_Loader) {
-        _inherits(SubmitCustomElement, _Loader);
-
+      _export("SubmitCustomElement", SubmitCustomElement = (_class = function () {
         function SubmitCustomElement() {
-          var _temp, _this, _ret;
-
           _classCallCheck(this, SubmitCustomElement);
 
-          for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
-          }
-
-          return _ret = (_temp = (_this = _possibleConstructorReturn(this, _Loader.call.apply(_Loader, [this].concat(args))), _this), _initDefineProp(_this, 'text', _descriptor, _this), _temp), _possibleConstructorReturn(_this, _ret);
+          _initDefineProp(this, "text", _descriptor, this);
         }
 
         SubmitCustomElement.prototype.bind = function bind(parent) {
@@ -3676,14 +4154,14 @@ System.register('app/components/submit.js', ['aurelia-framework', 'app/loader'],
         };
 
         return SubmitCustomElement;
-      }(Loader), _descriptor = _applyDecoratedDescriptor(_class.prototype, 'text', [bindable], {
+      }(), _descriptor = _applyDecoratedDescriptor(_class.prototype, "text", [bindable], {
         enumerable: true,
         initializer: function initializer() {
           return "Submit";
         }
       }), _class));
 
-      _export('SubmitCustomElement', SubmitCustomElement);
+      _export("SubmitCustomElement", SubmitCustomElement);
     }
   };
 });
@@ -3813,7 +4291,7 @@ System.register('app/components/third-party/numeric-input.js', ['aurelia-framewo
 (function() {
 var define = System.amdDefine;
 define("app/components/tool-bar.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><div class=\"toolbar tabbar toolbar-bottom\"><div class=\"toolbar-inner\"><a click.delegate=\"navParties()\" class=\"tab-link ${page == 'parties' ? 'active': ''}\"><span class=\"tabbar-label\">Parties</span> </a><a click.delegate=\"navTrips()\" ref=\"tabTrips\" class=\"tab-link ${page == 'trips' ? 'active': ''}\"><span class=\"tabbar-label\">Trips</span></a></div></div></template>";
+  return "<template><div class=\"toolbar tabbar toolbar-bottom\"><div class=\"toolbar-inner\"><a click.delegate=\"navParties()\" class=\"pointer tab-link ${page == 'parties' ? 'active': ''}\"><span class=\"tabbar-label\">Parties</span> </a><a click.delegate=\"navTrips()\" ref=\"tabTrips\" class=\"pointer tab-link ${page == 'trips' ? 'active': ''}\"><span class=\"tabbar-label\">Trips</span></a></div></div></template>";
 });
 
 })();
@@ -4013,16 +4491,16 @@ System.register('app/components/trips/confirm-dialog.js', ['app/components/dialo
 (function() {
 var define = System.amdDefine;
 define("app/components/trips/confirm-end.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"./parties\"></require><require from=\"app/components/trips/other-location\"></require><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left\"></div><div class=\"center\" style=\"left: 0px\">${heading}</div><div class=\"right\"></div></div></div><center id=\"confirm-end\"><p class=\"label\">${message}?</p><div class=\"content-block\"><parties if.bind=\"selectedParties.length\" parties.bind=\"selectedParties\" selected.bind=\"selectedPartyIds\" value.bind=\"app.appContext.endTripPartyIds\"></parties></div><p class=\"label\">Confirm End Location</p><div class=\"content-block\" click.delegate=\"setDestination($event)\"><div class=\"row\"><div class=\"col-auto\"><a class=\"destination button\">${app.authContext.currentLocation()}</a></div><div class=\"col-auto\"><a class=\"destination button\">Airport</a></div><div class=\"col-auto\"><other-location other.bind=\"other\"></other-location></div></div></div><div class=\"content-block\"><p class=\"label color-green\">Destination: ${trip.destination}</p><div class=\"content-block\"><div class=\"row\"><div class=\"col-auto\"><a click.delegate=\"cancel()\" class=\"button button-raised button-round\">Cancel</a></div><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button button-raised button-round\">Ok</a></div></div></div></div></center></template>";
+  return "<template><require from=\"./parties\"></require><require from=\"app/components/cselect\"></require><require from=\"app/components/trips/other-location\"></require><require from=\"app/components/nav-popup.html\"></require><nav-popup heading=\"${heading}\" actions.bind=\"actions\"></nav-popup><center id=\"confirm-end\"><p class=\"label\">${message}?</p><div class=\"content-block\"><parties if.bind=\"selectedParties.length\" parties.bind=\"selectedParties\" selected.bind=\"selectedPartyIds\" value.bind=\"app.appContext.endTripPartyIds\"></parties></div><p class=\"label\">Confirm End Location</p><div class=\"content-block\"><cselect title=\"Location\" empty-text=\"No locations available\" options.bind=\"locations\" value.bind=\"trip.destination\"></cselect></div><div class=\"content-block\"><div class=\"row\"><div class=\"col-auto\"><other-location other.bind=\"other\"></other-location></div></div></div><div class=\"content-block\"><p class=\"label color-green\">Destination: ${trip.destination}</p><div class=\"content-block\"><div class=\"row\"><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button button-raised button-round\">Ok</a></div></div></div></div></center></template>";
 });
 
 })();
 'use strict';
 
-System.register('app/components/trips/confirm-end.js', ['app/bootstrap-dialog', 'app/app', 'aurelia-framework'], function (_export, _context) {
+System.register('app/components/trips/confirm-end.js', ['app/bootstrap-dialog', 'aurelia-framework'], function (_export, _context) {
   "use strict";
 
-  var BootstrapDialog, App, bindable, _desc, _value, _class, _descriptor, ConfirmEnd;
+  var BootstrapDialog, bindable, computedFrom, _createClass, _dec, _desc, _value, _class, _descriptor, ConfirmEnd;
 
   function _initDefineProp(target, property, descriptor, context) {
     if (!descriptor) return;
@@ -4064,6 +4542,10 @@ System.register('app/components/trips/confirm-end.js', ['app/bootstrap-dialog', 
     if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
+  function _initializerWarningHelper(descriptor, context) {
+    throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
+  }
+
   function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
     var desc = {};
     Object['ke' + 'ys'](descriptor).forEach(function (key) {
@@ -4093,20 +4575,33 @@ System.register('app/components/trips/confirm-end.js', ['app/bootstrap-dialog', 
     return desc;
   }
 
-  function _initializerWarningHelper(descriptor, context) {
-    throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
-  }
-
   return {
     setters: [function (_appBootstrapDialog) {
       BootstrapDialog = _appBootstrapDialog.BootstrapDialog;
-    }, function (_appApp) {
-      App = _appApp.App;
     }, function (_aureliaFramework) {
       bindable = _aureliaFramework.bindable;
+      computedFrom = _aureliaFramework.computedFrom;
     }],
     execute: function () {
-      _export('ConfirmEnd', ConfirmEnd = (_class = function (_BootstrapDialog) {
+      _createClass = function () {
+        function defineProperties(target, props) {
+          for (var i = 0; i < props.length; i++) {
+            var descriptor = props[i];
+            descriptor.enumerable = descriptor.enumerable || false;
+            descriptor.configurable = true;
+            if ("value" in descriptor) descriptor.writable = true;
+            Object.defineProperty(target, descriptor.key, descriptor);
+          }
+        }
+
+        return function (Constructor, protoProps, staticProps) {
+          if (protoProps) defineProperties(Constructor.prototype, protoProps);
+          if (staticProps) defineProperties(Constructor, staticProps);
+          return Constructor;
+        };
+      }();
+
+      _export('ConfirmEnd', ConfirmEnd = (_dec = computedFrom("app.appContext.locations"), (_class = function (_BootstrapDialog) {
         _inherits(ConfirmEnd, _BootstrapDialog);
 
         function ConfirmEnd() {
@@ -4127,6 +4622,7 @@ System.register('app/components/trips/confirm-end.js', ['app/bootstrap-dialog', 
           this.trip = options.model;
           this.selectedPartyIds = this.app.appContext.tripPartyIds();
           this.selectedParties = this.app.appContext.reservedActiveParties.filter(function (party) {
+
             return _this2.selectedPartyIds.includes(party.id);
           });
           var these = "with these";
@@ -4155,11 +4651,20 @@ System.register('app/components/trips/confirm-end.js', ['app/bootstrap-dialog', 
           this.trip.destination = event.target.innerHTML;
         };
 
+        _createClass(ConfirmEnd, [{
+          key: 'locations',
+          get: function get() {
+            return this.app.appContext.locations.map(function (location) {
+              return location.name;
+            });
+          }
+        }]);
+
         return ConfirmEnd;
-      }(BootstrapDialog), _descriptor = _applyDecoratedDescriptor(_class.prototype, 'other', [bindable], {
+      }(BootstrapDialog), (_applyDecoratedDescriptor(_class.prototype, 'locations', [_dec], Object.getOwnPropertyDescriptor(_class.prototype, 'locations'), _class.prototype), _descriptor = _applyDecoratedDescriptor(_class.prototype, 'other', [bindable], {
         enumerable: true,
         initializer: null
-      }), _class));
+      })), _class)));
 
       _export('ConfirmEnd', ConfirmEnd);
     }
@@ -4169,7 +4674,7 @@ System.register('app/components/trips/confirm-end.js', ['app/bootstrap-dialog', 
 (function() {
 var define = System.amdDefine;
 define("app/components/trips/confirm-start.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"app/components/cselect\"></require><require from=\"./parties\"></require><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left\"></div><div class=\"center\" style=\"left: 0px\">${heading}</div><div class=\"right\"></div></div></div><div class=\"content-block text-center color-red\" if.bind=\"!shuttlesAvailable\"><p>Sorry you cannot start the trip, no shuttles are available at your location.</p></div><div if.bind=\"!shuttlesAvailable\"><div class=\"text-center\"><a click.delegate=\"closeDialog()\" class=\"button button-raised\">Ok</a></div></div><form id=\"confirm-start\" role=\"form\" submit.delegate=\"submit()\" if.bind=\"shuttlesAvailable\"><center><p class=\"label\">${message}?</p><div class=\"content-block\"><parties parties.bind=\"app.appContext.reservedActiveParties\" selected.bind=\"selectedPartyIds\" value.bind=\"app.appContext.startTripPartyIds\"></parties></div><div class=\"content-block\"><div class=\"list-block\"><ul class=\"no-top-bottom-border\"><li><div class=\"item-content\"><div class=\"item-inner\"><div class=\"item-title label\">Shuttle:</div><div class=\"item-input\"><cselect form-control=\"false\" empty-text=\"No shuttles available at your location\" options.bind=\"shuttles\" blank-text=\"Please select a shuttle\" value.bind=\"driverShuttleId & validate\"></cselect></div></div></div></li></ul></div></div><div class=\"content-block\"><div class=\"row\"><div class=\"col-auto\"><a click.delegate=\"closeDialog()\" class=\"button button-raised\">Cancel</a></div><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button button-raised\">Ok</a></div></div></div></center></form></template>";
+  return "<template><require from=\"app/components/cselect\"></require><require from=\"./parties\"></require><require from=\"app/components/nav-popup.html\"></require><nav-popup heading=\"${heading}\" actions.bind=\"actions\"></nav-popup><div class=\"content-block text-center color-red\" if.bind=\"!shuttlesAvailable\"><p>Sorry you cannot start the trip, no shuttles are available at your location.</p></div><div if.bind=\"!shuttlesAvailable\"><div class=\"text-center\"><a click.delegate=\"closeDialog()\" class=\"button button-raised\">Ok</a></div></div><form id=\"confirm-start\" role=\"form\" submit.delegate=\"submit()\" if.bind=\"shuttlesAvailable\"><center><p class=\"label\">${message}?</p><div class=\"content-block\"><parties parties.bind=\"app.appContext.reservedActiveParties\" selected.bind=\"selectedPartyIds\" value.bind=\"app.appContext.startTripPartyIds\"></parties></div><div class=\"content-block\"><div class=\"list-block\"><ul class=\"no-top-bottom-border\"><li><div class=\"item-content\"><div class=\"item-inner\"><div class=\"item-title label\">Shuttle:</div><div class=\"item-input\"><cselect form-control=\"false\" empty-text=\"No shuttles available at your location\" options.bind=\"shuttles\" blank-text=\"Please select a shuttle\" value.bind=\"driverShuttleId & validate\"></cselect></div></div></div></li></ul></div></div><div class=\"content-block\"><div class=\"row\"><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button button-raised\">Ok</a></div></div></div></center></form></template>";
 });
 
 })();
@@ -4383,14 +4888,132 @@ define("app/components/trips/party-header.html!github:systemjs/plugin-text@0.0.9
 (function() {
 var define = System.amdDefine;
 define("app/components/trips/party.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template bindable=\"party\"><div class=\"col-auto\">${party.paddedNumber}</div><div class=\"col-auto\">${party.status}</div><div class=\"col-auto\">${party.pickup}</div><div class=\"col-auto\">${party.destination}</div><div class=\"col-auto\">${party.date}</div><div class=\"col-auto\">${party.departure}</div><div class=\"col-auto\">${party.partySize}</div><div class=\"col-auto\">${party.contactNumber}</div><div class=\"col-auto\">${party.roomNumber}</div></template>";
+  return "<template bindable=\"party\"><a class=\"item-link pointer item-content\"><div class=\"item-inner\" click.delegate=\"showArchived(party)\"><div class=\"item-title-row\"><div class=\"item-title\">${party.paddedNumber}</div><div class=\"item-after\">${party.partySize}</div></div><div class=\"item-subtitle\">${party.partyName}</div><div class=\"item-text\"><div class=\"row\"><p>${party.date} ${party.departure}</p><p>Pickup: ${party.pickup}</p></div></div></div></a></template>";
 });
 
 })();
+'use strict';
+
+System.register('app/components/trips/party.js', ['app/app-base', 'aurelia-framework'], function (_export, _context) {
+  "use strict";
+
+  var AppBase, bindable, _desc, _value, _class, _descriptor, Party;
+
+  function _initDefineProp(target, property, descriptor, context) {
+    if (!descriptor) return;
+    Object.defineProperty(target, property, {
+      enumerable: descriptor.enumerable,
+      configurable: descriptor.configurable,
+      writable: descriptor.writable,
+      value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
+    });
+  }
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+      desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+      desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+      return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+      desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+      desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+      Object['define' + 'Property'](target, property, desc);
+      desc = null;
+    }
+
+    return desc;
+  }
+
+  function _initializerWarningHelper(descriptor, context) {
+    throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
+  }
+
+  return {
+    setters: [function (_appAppBase) {
+      AppBase = _appAppBase.AppBase;
+    }, function (_aureliaFramework) {
+      bindable = _aureliaFramework.bindable;
+    }],
+    execute: function () {
+      _export('Party', Party = (_class = function (_AppBase) {
+        _inherits(Party, _AppBase);
+
+        function Party() {
+          var _temp, _this, _ret;
+
+          _classCallCheck(this, Party);
+
+          for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+          }
+
+          return _ret = (_temp = (_this = _possibleConstructorReturn(this, _AppBase.call.apply(_AppBase, [this].concat(args))), _this), _initDefineProp(_this, 'party', _descriptor, _this), _temp), _possibleConstructorReturn(_this, _ret);
+        }
+
+        Party.prototype.showArchived = function showArchived(party) {
+          this.app.appContext.selectedParty = party;
+          this.app.router.navigateToRoute("show-archived");
+        };
+
+        return Party;
+      }(AppBase), _descriptor = _applyDecoratedDescriptor(_class.prototype, 'party', [bindable], {
+        enumerable: true,
+        initializer: null
+      }), _class));
+
+      _export('Party', Party);
+    }
+  };
+});
+
 (function() {
 var define = System.amdDefine;
 define("app/components/trips/trip-add-party.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"app/components/cselect\"></require><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left\"></div><div class=\"center\" style=\"left: 0px\">${heading}</div><div class=\"right\"></div></div></div><form role=\"form\" submit.delegate=\"submit()\"><div class=\"content-block\"><div class=\"list-block content-block-inner no-top-border\"><ul class=\"no-top-bottom-border\"><li><div class=\"item-content\"><div class=\"item-inner\"><div class=\"item-title label\">Party:</div><div class=\"item-input\"><cselect value.bind=\"partyToAdd & validate\" options.bind=\"availableParties\" blank-text=\"Choose Party To Add\"></cselect></div></div></div></li></ul></div></div><div class=\"content-block\"><div class=\"row text-center\"><div class=\"col-auto\"><a click.delegate=\"closeDialog()\" class=\"button button-raised\">Cancel</a></div><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button button-raised\">Ok</a></div></div></div></form></template>";
+  return "<template><require from=\"app/components/cselect\"></require><require from=\"app/components/nav-popup.html\"></require><nav-popup heading=\"${heading}\" actions.bind=\"actions\"></nav-popup><form role=\"form\" submit.delegate=\"submit()\"><div class=\"content-block\"><cselect title=\"Party\" value.bind=\"partyToAdd & validate\" options.bind=\"availableParties\" blank-text=\"Choose Party To Add\"></cselect></div><div class=\"content-block\"><div class=\"row text-center\"><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button button-raised\">Ok</a></div></div></div></form></template>";
 });
 
 })();
@@ -4505,9 +5128,19 @@ System.register('app/bootstrap-dialog.js', ['app/bootstrap'], function (_export,
         _inherits(BootstrapDialog, _Bootstrap);
 
         function BootstrapDialog() {
+          var _temp, _this, _ret;
+
           _classCallCheck(this, BootstrapDialog);
 
-          return _possibleConstructorReturn(this, _Bootstrap.apply(this, arguments));
+          for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+          }
+
+          return _ret = (_temp = (_this = _possibleConstructorReturn(this, _Bootstrap.call.apply(_Bootstrap, [this].concat(args))), _this), _this.actions = {
+            closePopup: function closePopup() {
+              return _this.closeDialog();
+            }
+          }, _temp), _possibleConstructorReturn(_this, _ret);
         }
 
         BootstrapDialog.prototype.closeDialog = function closeDialog() {
@@ -4727,17 +5360,135 @@ define("app/components/trips/trip-header.html!github:systemjs/plugin-text@0.0.9.
 (function() {
 var define = System.amdDefine;
 define("app/components/trips/trip-list.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template bindable=\"list, isA\"><require from=\"app/components/trips/trip.html\"></require><require from=\"app/components/trips/party.html\"></require><require from=\"./party-header.html\"></require><require from=\"./trip-header.html\"></require><div class=\"content-block pointer trip-list-item\" repeat.for=\"item of list\"><div class=\"content-block-inner\"><div class=\"row no-gutter\"><trip-header trip.bind=\"item\" if.bind=\"isA.isTrip(item)\" containerless></trip-header><party-header party.bind=\"item\" if.bind=\"isA.isParty(item)\" containerless></party-header></div><div class=\"row no-gutter\"><trip trip.bind=\"item\" if.bind=\"isA.isTrip(item)\" containerless></trip><party party.bind=\"item\" if.bind=\"isA.isParty(item)\" containerless></party></div></div></div></template>";
+  return "<template bindable=\"list, isA\"><require from=\"app/components/trips/trip\"></require><require from=\"app/components/trips/party\"></require><div id=\"trips\" class=\"list-block media-list\"><ul><li repeat.for=\"item of list\"><trip trip.bind=\"item\" if.bind=\"isA.isTrip(item)\" containerless></trip><party party.bind=\"item\" if.bind=\"isA.isParty(item)\" containerless></party></li></ul></div></template>";
 });
 
 })();
 (function() {
 var define = System.amdDefine;
 define("app/components/trips/trip.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template bindable=\"trip\"><div class=\"col-auto\">${trip.paddedNumber}</div><div class=\"col-auto\">${trip.status}</div><div class=\"col-auto\">${trip.pickup}</div><div class=\"col-auto\">${trip.destination}</div><div class=\"col-auto\">${trip.date}</div><div class=\"col-auto\">${trip.departure}</div><div class=\"col-auto\">${trip.arrival}</div><div class=\"col-auto\">${trip.partySize}</div></template>";
+  return "<template><a class=\"item-link pointer item-content\"><div class=\"item-inner\" click.delegate=\"showTrip(trip)\"><div class=\"item-title-row\"><div class=\"item-title\">${trip.paddedNumber}</div><div class=\"item-after\">${trip.status}</div></div><div class=\"item-subtitle\">${trip.destination}</div><div class=\"item-text\"><div class=\"row\"><p>Departure: ${trip.date} ${trip.departure}</p><p if.bind=\"trip.arrival\">Arrival: ${trip.arrival}</p></div></div></div></a></template>";
 });
 
 })();
+'use strict';
+
+System.register('app/components/trips/trip.js', ['app/app-base', 'aurelia-framework'], function (_export, _context) {
+  "use strict";
+
+  var AppBase, bindable, _desc, _value, _class, _descriptor, Trip;
+
+  function _initDefineProp(target, property, descriptor, context) {
+    if (!descriptor) return;
+    Object.defineProperty(target, property, {
+      enumerable: descriptor.enumerable,
+      configurable: descriptor.configurable,
+      writable: descriptor.writable,
+      value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
+    });
+  }
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+      desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+      desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+      return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+      desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+      desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+      Object['define' + 'Property'](target, property, desc);
+      desc = null;
+    }
+
+    return desc;
+  }
+
+  function _initializerWarningHelper(descriptor, context) {
+    throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
+  }
+
+  return {
+    setters: [function (_appAppBase) {
+      AppBase = _appAppBase.AppBase;
+    }, function (_aureliaFramework) {
+      bindable = _aureliaFramework.bindable;
+    }],
+    execute: function () {
+      _export('Trip', Trip = (_class = function (_AppBase) {
+        _inherits(Trip, _AppBase);
+
+        function Trip() {
+          var _temp, _this, _ret;
+
+          _classCallCheck(this, Trip);
+
+          for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+          }
+
+          return _ret = (_temp = (_this = _possibleConstructorReturn(this, _AppBase.call.apply(_AppBase, [this].concat(args))), _this), _initDefineProp(_this, 'trip', _descriptor, _this), _temp), _possibleConstructorReturn(_this, _ret);
+        }
+
+        Trip.prototype.showTrip = function showTrip(trip) {
+          this.app.appContext.selectedTrip = trip;
+          this.app.router.navigateToRoute("show-trip");
+        };
+
+        return Trip;
+      }(AppBase), _descriptor = _applyDecoratedDescriptor(_class.prototype, 'trip', [bindable], {
+        enumerable: true,
+        initializer: null
+      }), _class));
+
+      _export('Trip', Trip);
+    }
+  };
+});
+
 (function() {
 var define = System.amdDefine;
 define("app/components/zip-code.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
@@ -5261,8 +6012,6 @@ System.register('app/main-view.js', ['aurelia-framework', 'app/app-context'], fu
           get: function get() {
             var currentInstruction = this.router.currentInstruction;
             if (currentInstruction) {
-              console.log('current instruction', currentInstruction.config.moduleId);
-
               return currentInstruction.config.moduleId;
             }
           }
@@ -5288,6 +6037,138 @@ System.register('app/main-view.js', ['aurelia-framework', 'app/app-context'], fu
       }), _applyDecoratedDescriptor(_class.prototype, 'currentPage', [_dec], Object.getOwnPropertyDescriptor(_class.prototype, 'currentPage'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'currentPageClass', [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, 'currentPageClass'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'currentPageName', [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, 'currentPageName'), _class.prototype)), _class)));
 
       _export('MainView', MainView);
+    }
+  };
+});
+
+(function() {
+var define = System.amdDefine;
+define("app/n-popup.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template><div id=\"npopup\" class=\"popup npopup tablet-fullscreen\"><div class=\"view popup-view text-normal\"><compose if.bind=\"canShowNPopup\" view-model.bind=\"view\" model.bind=\"model\"></compose></div></div></template>";
+});
+
+})();
+'use strict';
+
+System.register('app/n-popup.js', ['aurelia-framework', 'app/app-base'], function (_export, _context) {
+  "use strict";
+
+  var computedFrom, AppBase, _createClass, _dec, _dec2, _dec3, _desc, _value, _class, NPopup;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+      desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+      desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+      return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+      desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+      desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+      Object['define' + 'Property'](target, property, desc);
+      desc = null;
+    }
+
+    return desc;
+  }
+
+  return {
+    setters: [function (_aureliaFramework) {
+      computedFrom = _aureliaFramework.computedFrom;
+    }, function (_appAppBase) {
+      AppBase = _appAppBase.AppBase;
+    }],
+    execute: function () {
+      _createClass = function () {
+        function defineProperties(target, props) {
+          for (var i = 0; i < props.length; i++) {
+            var descriptor = props[i];
+            descriptor.enumerable = descriptor.enumerable || false;
+            descriptor.configurable = true;
+            if ("value" in descriptor) descriptor.writable = true;
+            Object.defineProperty(target, descriptor.key, descriptor);
+          }
+        }
+
+        return function (Constructor, protoProps, staticProps) {
+          if (protoProps) defineProperties(Constructor.prototype, protoProps);
+          if (staticProps) defineProperties(Constructor, staticProps);
+          return Constructor;
+        };
+      }();
+
+      _export('NPopup', NPopup = (_dec = computedFrom("app.appContext.nPopupView"), _dec2 = computedFrom("app.appContext.canShowNPopup"), _dec3 = computedFrom("appContext.nPopupModel"), (_class = function (_AppBase) {
+        _inherits(NPopup, _AppBase);
+
+        function NPopup() {
+          _classCallCheck(this, NPopup);
+
+          return _possibleConstructorReturn(this, _AppBase.apply(this, arguments));
+        }
+
+        _createClass(NPopup, [{
+          key: 'view',
+          get: function get() {
+            return this.app.appContext.nPopupView;
+          }
+        }, {
+          key: 'canShowNPopup',
+          get: function get() {
+            return this.app.appContext.canShowNPopup;
+          }
+        }, {
+          key: 'model',
+          get: function get() {
+            return this.app.appContext.nPopupModel;
+          }
+        }]);
+
+        return NPopup;
+      }(AppBase), (_applyDecoratedDescriptor(_class.prototype, 'view', [_dec], Object.getOwnPropertyDescriptor(_class.prototype, 'view'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'canShowNPopup', [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, 'canShowNPopup'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'model', [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, 'model'), _class.prototype)), _class)));
+
+      _export('NPopup', NPopup);
     }
   };
 });
@@ -5327,289 +6208,10 @@ System.register("app/not-found.js", [], function (_export, _context) {
 (function() {
 var define = System.amdDefine;
 define("app/parties.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"app/components/parties/party-list\"></require><div if.bind=\"app.authContext.hasLocation\"><party-list edited.bind=\"edited\" actions.bind=\"actions\" parties.bind=\"parties\" containerless></party-list></div></template>";
+  return "<template><require from=\"app/components/parties/party-list\"></require><div if.bind=\"app.authContext.hasLocation\"><party-list parties.bind=\"parties\" containerless></party-list></div></template>";
 });
 
 })();
-'use strict';
-
-System.register('app/add-resource-dialog.js', ['app/resource-dialog', 'aurelia-framework', 'app/stores', 'app/utils', 'app/api'], function (_export, _context) {
-  "use strict";
-
-  var ResourceDialog, inject, bindable, Stores, Utils, Api, _dec, _dec2, _class, AddResourceDialog;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  function _possibleConstructorReturn(self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
-
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
-  }
-
-  function _inherits(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
-
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }
-
-  return {
-    setters: [function (_appResourceDialog) {
-      ResourceDialog = _appResourceDialog.ResourceDialog;
-    }, function (_aureliaFramework) {
-      inject = _aureliaFramework.inject;
-      bindable = _aureliaFramework.bindable;
-    }, function (_appStores) {
-      Stores = _appStores.Stores;
-    }, function (_appUtils) {
-      Utils = _appUtils.Utils;
-    }, function (_appApi) {
-      Api = _appApi.Api;
-    }],
-    execute: function () {
-      _export('AddResourceDialog', AddResourceDialog = (_dec = inject(Stores, Api), _dec2 = bindable("edited"), _dec(_class = _dec2(_class = function (_ResourceDialog) {
-        _inherits(AddResourceDialog, _ResourceDialog);
-
-        function AddResourceDialog(stores, api) {
-          _classCallCheck(this, AddResourceDialog);
-
-          for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-            args[_key - 2] = arguments[_key];
-          }
-
-          var _this = _possibleConstructorReturn(this, _ResourceDialog.call.apply(_ResourceDialog, [this].concat(args)));
-
-          _this.subscribers = [];
-          _this.showHeader = true;
-          _this.selectable = true;
-          _this.subscriptions = {
-            "added": "resourceAdded",
-            "updated": "resourceUpdated",
-            "deleted": "resourceDeleted"
-          };
-          _this.actionTrigger = {
-            add: function add() {
-              _this.addResource();
-            },
-            edit: function edit(resource) {
-
-              _this.editResource(resource);
-            },
-            delete: function _delete(resource) {
-              _this.deleteResource(resource);
-            }
-          };
-
-          _this.store = stores.get(_this.resourceName());
-          _this.api = api;
-          _this.store.api = _this.api;
-          return _this;
-        }
-
-        AddResourceDialog.prototype.initActionTrigger = function initActionTrigger() {
-          this.actionTrigger = Object.assign({}, this.actionTrigger, this.actionTriggers || {});
-        };
-
-        AddResourceDialog.prototype.getApi = function getApi() {
-          return this.api;
-        };
-
-        AddResourceDialog.prototype.resourceDeleted = function resourceDeleted(resource) {
-
-          this.removeFromCollection(resource);
-          this.api.notifier.success(Utils.capitalize(this.resourceName()) + ' archived successfully.');
-        };
-
-        AddResourceDialog.prototype.removeFromCollection = function removeFromCollection(resource) {
-          Utils.removeFromCollection(resource, this.collection());
-        };
-
-        AddResourceDialog.prototype.deleteResource = function deleteResource(resource) {
-          var _this2 = this;
-
-          this.store.deleteItem(resource).catch(function (err) {
-            _this2.api.notifier.danger(err);
-          });
-        };
-
-        AddResourceDialog.prototype.editResource = function editResource(resource) {
-          this.dialogOpenEditResource(resource);
-        };
-
-        AddResourceDialog.prototype.addResource = function addResource() {
-          this.dialogOpenAddResource();
-        };
-
-        AddResourceDialog.prototype.dialogOpenAddResource = function dialogOpenAddResource() {
-          this.dialogOpen();
-        };
-
-        AddResourceDialog.prototype.viewModel = function viewModel() {
-          if (this.staticMode) {
-            return _ResourceDialog.prototype.viewModel.call(this);
-          } else {
-            return this.dialogAddResourceViewModel;
-          }
-        };
-
-        AddResourceDialog.prototype.resourceAdded = function resourceAdded(resource) {
-          var model = this.resourceToModel(resource);
-
-          Utils.addToCollection(model, this.collection());
-          this.api.notifier.success(Utils.capitalize(this.resourceName()) + ' added successfully.');
-        };
-
-        AddResourceDialog.prototype.resourceUpdated = function resourceUpdated(resource) {
-          var model = this.resourceToModel(resource);
-
-          this.edited = model;
-          this.api.notifier.success(Utils.capitalize(this.resourceName()) + ' updated successfully.');
-        };
-
-        AddResourceDialog.prototype.collection = function collection() {
-          var collectionName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : undefined;
-
-          return this[collectionName || this.collectionName()];
-        };
-
-        AddResourceDialog.prototype.resourceToModel = function resourceToModel(resource) {
-          var model = this.toModel(resource);
-          model.id = resource.id;
-          return model;
-        };
-
-        AddResourceDialog.prototype.collectionName = function collectionName() {
-          return Utils.collectionName(this.resourceName());
-        };
-
-        AddResourceDialog.prototype.addStoreSubscriptions = function addStoreSubscriptions() {
-          if (this.store) {
-            this.subscribers = this.store.addSubscriptions(this, this.subscriptions);
-          }
-        };
-
-        AddResourceDialog.prototype.removeStoreSubscriptions = function removeStoreSubscriptions() {
-          if (this.store) {
-            this.store.removeSubscriptions(this.subscribers);
-          }
-        };
-
-        return AddResourceDialog;
-      }(ResourceDialog)) || _class) || _class));
-
-      _export('AddResourceDialog', AddResourceDialog);
-    }
-  };
-});
-
-'use strict';
-
-System.register('app/resource-dialog.js', ['aurelia-framework', 'app/models', 'app/utils'], function (_export, _context) {
-  "use strict";
-
-  var inject, Models, Utils, ResourceDialog;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  return {
-    setters: [function (_aureliaFramework) {
-      inject = _aureliaFramework.inject;
-    }, function (_appModels) {
-      Models = _appModels.Models;
-    }, function (_appUtils) {
-      Utils = _appUtils.Utils;
-    }],
-    execute: function () {
-      _export('ResourceDialog', ResourceDialog = function () {
-        function ResourceDialog() {
-          _classCallCheck(this, ResourceDialog);
-
-          this.staticMode = false;
-
-          this.dialogInit();
-        }
-
-        ResourceDialog.prototype.viewModel = function viewModel() {
-          if (this.staticMode) {
-            return this.dialogStaticViewModel;
-          } else {
-            return this.dialogViewModel;
-          }
-        };
-
-        ResourceDialog.prototype.dialogOpenStatic = function dialogOpenStatic(model) {
-          this.staticMode = true;
-          this.dialogOpen(model);
-        };
-
-        ResourceDialog.prototype.dialogInit = function dialogInit() {};
-
-        ResourceDialog.prototype.dialogOpenEditResource = function dialogOpenEditResource(model) {
-          this.dialogOpen(model);
-        };
-
-        ResourceDialog.prototype.dialogOpen = function dialogOpen() {
-          var model = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-        };
-
-        ResourceDialog.prototype.dialogOpenSuccess = function dialogOpenSuccess() {};
-
-        ResourceDialog.prototype.dialogOpenCancelled = function dialogOpenCancelled() {};
-
-        ResourceDialog.prototype.resourceModel = function resourceModel() {
-          return Models.get(this.resourceName());
-        };
-
-        ResourceDialog.prototype.toModel = function toModel() {
-          var target = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : undefined;
-
-          var params = {};
-          var model = this;
-          if (target) {
-            model = target;
-          }
-          var Model = this.resourceModel();
-          Utils.forEachModelProp(Model, function (prop) {
-            params[prop] = model[prop];
-          });
-          return new Model(params);
-        };
-
-        ResourceDialog.prototype.resourceName = function resourceName() {
-          return this.constructor.dialogResourceName;
-        };
-
-        ResourceDialog.prototype.dialogCancel = function dialogCancel() {};
-
-        ResourceDialog.prototype.dialogClose = function dialogClose() {};
-
-        return ResourceDialog;
-      }());
-
-      _export('ResourceDialog', ResourceDialog);
-    }
-  };
-});
-
 'use strict';
 
 System.register('app/bootstrap-form.js', ['aurelia-validation', 'aurelia-framework'], function (_export, _context) {
@@ -5666,6 +6268,836 @@ System.register('app/bootstrap-form.js', ['aurelia-validation', 'aurelia-framewo
       }()) || _class));
 
       _export('BootstrapForm', BootstrapForm);
+    }
+  };
+});
+
+'use strict';
+
+System.register('app/resource-dialog-form.js', ['app/resource-dialog', 'aurelia-framework', 'app/bootstrap-form', 'aurelia-validation', 'app/utils', 'app/stores', 'app/app', 'app/collection'], function (_export, _context) {
+  "use strict";
+
+  var ResourceDialog, inject, BootstrapForm, ValidationRules, Utils, Stores, App, Collection, _dec, _class, submit, ResourceDialogForm;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  return {
+    setters: [function (_appResourceDialog) {
+      ResourceDialog = _appResourceDialog.ResourceDialog;
+    }, function (_aureliaFramework) {
+      inject = _aureliaFramework.inject;
+    }, function (_appBootstrapForm) {
+      BootstrapForm = _appBootstrapForm.BootstrapForm;
+    }, function (_aureliaValidation) {
+      ValidationRules = _aureliaValidation.ValidationRules;
+    }, function (_appUtils) {
+      Utils = _appUtils.Utils;
+    }, function (_appStores) {
+      Stores = _appStores.Stores;
+    }, function (_appApp) {
+      App = _appApp.App;
+    }, function (_appCollection) {
+      Collection = _appCollection.Collection;
+    }],
+    execute: function () {
+      submit = function submit(success) {
+        var _this = this;
+
+        var error = function error(errors) {
+          errors.forEach(function (error) {
+            _this.app.notifier.formError(error);
+          });
+        };
+        this.bootstrapForm.validateSubmit(function () {
+          return Promise.resolve(success()).then(function () {
+            _this.app.appContext.closePopup();
+          }).catch(function (err) {
+            _this.app.notifier.danger(err);
+          });
+        }, error);
+      };
+
+      _export('ResourceDialogForm', ResourceDialogForm = (_dec = inject(BootstrapForm, Stores, App), _dec(_class = function (_ResourceDialog) {
+        _inherits(ResourceDialogForm, _ResourceDialog);
+
+        function ResourceDialogForm(bootstrapForm, stores, app) {
+          _classCallCheck(this, ResourceDialogForm);
+
+          for (var _len = arguments.length, args = Array(_len > 3 ? _len - 3 : 0), _key = 3; _key < _len; _key++) {
+            args[_key - 3] = arguments[_key];
+          }
+
+          var _this2 = _possibleConstructorReturn(this, _ResourceDialog.call.apply(_ResourceDialog, [this].concat(args)));
+
+          _this2.bootstrapForm = bootstrapForm;
+          _this2.stores = stores;
+          _this2.app = app;
+          _this2.collection = Collection;
+          _this2.store = stores.get(_this2.resourceName());
+          _this2.bootstrapForm.configureFormValidationRules(_this2, function (rules) {
+            _this2.validationRules = _this2.formValidationRules(rules);
+            return _this2.validationRules;
+          });
+          return _this2;
+        }
+
+        ResourceDialogForm.prototype.initFromModel = function initFromModel(model) {
+          var _this3 = this;
+
+          this.id = model.id;
+          Utils.forEachModelProp(this.resourceModel(), function (prop) {
+            if (!Utils.isNullOrUndefined(model[prop])) {
+              _this3[prop] = model[prop];
+            }
+          });
+        };
+
+        ResourceDialogForm.prototype.activate = function activate(options) {
+          this.options = options;
+          var Model = this.resourceModel();
+          var model = new Model(options.model);
+          this.editMode = !model.isNew();
+          if (this.editMode) {
+            this.heading = 'Edit ' + Utils.capitalize(this.resourceName());
+          }
+
+          this.initFromModel(options.model);
+        };
+
+        ResourceDialogForm.prototype.formValidationRules = function formValidationRules(rules) {};
+
+        ResourceDialogForm.prototype.addItemSubmit = function addItemSubmit() {
+          var _this4 = this;
+
+          console.log('adding item!!!!');
+          submit.call(this, function () {
+            return _this4.store.addItem(_this4.toModel());
+          });
+        };
+
+        ResourceDialogForm.prototype.editItemSubmit = function editItemSubmit() {
+          var _this5 = this;
+
+          submit.call(this, function () {
+            return _this5.store.updateItem(Object.assign(_this5.toModel(), { id: _this5.id }));
+          });
+        };
+
+        ResourceDialogForm.prototype.disableValidationRules = function disableValidationRules() {
+          this.bootstrapForm.validationRules().off(this);
+        };
+
+        ResourceDialogForm.prototype.enableValidationRules = function enableValidationRules() {
+          this.validationRules.on(this);
+        };
+
+        ResourceDialogForm.prototype.submit = function submit() {
+          console.log('submitting form!!!!!!');
+          if (this.editMode) {
+            this.editItemSubmit();
+          } else {
+            this.addItemSubmit();
+          }
+        };
+
+        return ResourceDialogForm;
+      }(ResourceDialog)) || _class));
+
+      _export('ResourceDialogForm', ResourceDialogForm);
+    }
+  };
+});
+
+"use strict";
+
+System.register("app/parties/add-party.js", ["app/resource-dialog-form"], function (_export, _context) {
+  "use strict";
+
+  var ResourceDialogForm, _createClass, _class, _temp2, AddParty;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  return {
+    setters: [function (_appResourceDialogForm) {
+      ResourceDialogForm = _appResourceDialogForm.ResourceDialogForm;
+    }],
+    execute: function () {
+      _createClass = function () {
+        function defineProperties(target, props) {
+          for (var i = 0; i < props.length; i++) {
+            var descriptor = props[i];
+            descriptor.enumerable = descriptor.enumerable || false;
+            descriptor.configurable = true;
+            if ("value" in descriptor) descriptor.writable = true;
+            Object.defineProperty(target, descriptor.key, descriptor);
+          }
+        }
+
+        return function (Constructor, protoProps, staticProps) {
+          if (protoProps) defineProperties(Constructor.prototype, protoProps);
+          if (staticProps) defineProperties(Constructor, staticProps);
+          return Constructor;
+        };
+      }();
+
+      _export("AddParty", AddParty = (_temp2 = _class = function (_ResourceDialogForm) {
+        _inherits(AddParty, _ResourceDialogForm);
+
+        function AddParty() {
+          var _temp, _this, _ret;
+
+          _classCallCheck(this, AddParty);
+
+          for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+          }
+
+          return _ret = (_temp = (_this = _possibleConstructorReturn(this, _ResourceDialogForm.call.apply(_ResourceDialogForm, [this].concat(args))), _this), _this.heading = "Add Party", _this.partySize = 1, _temp), _possibleConstructorReturn(_this, _ret);
+        }
+
+        AddParty.prototype.validatesPickupDestination = function validatesPickupDestination(destination) {
+          if (destination) {
+            return destination != this.pickup;
+          }
+        };
+
+        AddParty.prototype.formValidationRules = function formValidationRules(rules) {
+          var _this2 = this;
+
+          return rules.ensure(function (a) {
+            return a.partyName;
+          }).required().ensure(function (a) {
+            return a.departureTime;
+          }).required().ensure(function (a) {
+            return a.pickup;
+          }).required().ensure(function (a) {
+            return a.destination;
+          }).required().satisfies(function (destination) {
+            return destination != _this2.pickup;
+          }).withMessage('Destination must be different from pickup').when(function (a) {
+            return a.destination.length > 0;
+          }).ensure(function (a) {
+            return a.contactNumber;
+          }).satisfiesRule("phoneLength").ensure(function (a) {
+            return a.email;
+          }).email().when(function (a) {
+            return a.email !== undefined && a.email.length > 0;
+          }).ensure(function (a) {
+            return a.partySize;
+          }).satisfiesRule('positiveInteger');
+        };
+
+        _createClass(AddParty, [{
+          key: "locationValid",
+          get: function get() {
+            return this.app.authContext.hasLocation();
+          }
+        }]);
+
+        return AddParty;
+      }(ResourceDialogForm), _class.dialogResourceName = "party", _temp2));
+
+      _export("AddParty", AddParty);
+    }
+  };
+});
+
+'use strict';
+
+System.register('app/parties.js', ['aurelia-framework', 'app/add-resource-dialog', 'app/parties/add-party', 'app/auth-context', 'app/utils', 'app/app'], function (_export, _context) {
+  "use strict";
+
+  var bindable, AddResourceDialog, AddParty, AuthContext, Utils, App, _desc, _value, _class, _descriptor, _class2, _temp, Parties;
+
+  function _initDefineProp(target, property, descriptor, context) {
+    if (!descriptor) return;
+    Object.defineProperty(target, property, {
+      enumerable: descriptor.enumerable,
+      configurable: descriptor.configurable,
+      writable: descriptor.writable,
+      value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
+    });
+  }
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+      desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+      desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+      return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+      desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+      desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+      Object['define' + 'Property'](target, property, desc);
+      desc = null;
+    }
+
+    return desc;
+  }
+
+  function _initializerWarningHelper(descriptor, context) {
+    throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
+  }
+
+  return {
+    setters: [function (_aureliaFramework) {
+      bindable = _aureliaFramework.bindable;
+    }, function (_appAddResourceDialog) {
+      AddResourceDialog = _appAddResourceDialog.AddResourceDialog;
+    }, function (_appPartiesAddParty) {
+      AddParty = _appPartiesAddParty.AddParty;
+    }, function (_appAuthContext) {
+      AuthContext = _appAuthContext.AuthContext;
+    }, function (_appUtils) {
+      Utils = _appUtils.Utils;
+    }, function (_appApp) {
+      App = _appApp.App;
+    }],
+    execute: function () {
+      _export('Parties', Parties = (_class = (_temp = _class2 = function (_AddResourceDialog) {
+        _inherits(Parties, _AddResourceDialog);
+
+        Parties.inject = function inject() {
+          return [AuthContext, App];
+        };
+
+        function Parties(authContext, app) {
+          _classCallCheck(this, Parties);
+
+          for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+            args[_key - 2] = arguments[_key];
+          }
+
+          var _this = _possibleConstructorReturn(this, _AddResourceDialog.call.apply(_AddResourceDialog, [this].concat(args)));
+
+          _this.actionTriggers = {
+            startTrip: function startTrip() {
+              var party = _this.app.appContext.selectedParties()[0];
+              _this.getApi().startTrip(_this.driverId, party.departureTime, party.pickup, party.destination, _this.app.appContext.driverShuttleId).then(function (updated) {
+                _this.app.router.navigateToRoute("active-trip").then(function () {
+                  return _this.actionSuccess("Trip started successfully.");
+                });
+              }).catch(function (err) {
+                return _this.actionError(err);
+              });
+            }
+          };
+
+          _initDefineProp(_this, 'parties', _descriptor, _this);
+
+          _this.updateRowClass = {
+            update: function update(row, callback) {
+              callback(_this.selectRowClass(row));
+            }
+          };
+
+          _this.authContext = authContext;
+          _this.app = app;
+          _this.initActionTrigger();
+          return _this;
+        }
+
+        Parties.prototype.actionSuccess = function actionSuccess(message) {
+          this.api.notifier.success(message);
+        };
+
+        Parties.prototype.actionError = function actionError(message) {
+          this.api.notifier.danger(message);
+        };
+
+        Parties.prototype.selectRowClass = function selectRowClass(party) {
+          var color = "";
+          switch (true) {
+            case party.isLate:
+              color = "red";break;
+            case party.isActive:
+              color = "green";break;
+            case party.isReserved:
+              color = "yellow";break;
+          }
+          if (color.length) {
+            return 'party ' + color;
+          }
+        };
+
+        Parties.prototype.activate = function activate() {
+          var _this2 = this;
+
+          this.addStoreSubscriptions();
+          this.app.appContext.partyController = this;
+          this.app.appContext.selectedRows = [];
+          var isDriver = this.authContext.isDriver();
+          if (isDriver) {
+            this.driverId = this.authContext.currentUser.id;
+            this.actionView = "app/components/resource-table/actions/driver-trips";
+          }
+          return this.app.appContext.loadLocations().then(function () {
+            return _this2.app.appContext.loadReservedActiveParties(_this2).then(function () {
+              return _this2.parties = _this2.reservedActiveParties;
+            });
+          });
+        };
+
+        Parties.prototype.deactivate = function deactivate() {
+          this.removeStoreSubscriptions();
+        };
+
+        return Parties;
+      }(AddResourceDialog), _class2.dialogResourceName = "party", _temp), _descriptor = _applyDecoratedDescriptor(_class.prototype, 'parties', [bindable], {
+        enumerable: true,
+        initializer: function initializer() {
+          return [];
+        }
+      }), _class));
+
+      _export('Parties', Parties);
+    }
+  };
+});
+
+(function() {
+var define = System.amdDefine;
+define("app/parties/add-party.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template><require from=\"app/trips/pickup-destination\"></require><require from=\"app/components/date-time-picker\"></require><require from=\"app/components/phone-number\"></require><require from=\"app/components/form-element.html\"></require><require from=\"app/components/third-party/numeric-input\"></require><require from=\"app/components/nav-popup.html\"></require><require from=\"app/location-not-found.html\"></require><location-not-found if.bind=\"!locationValid\"></location-not-found><div class=\"actions content-block\" if.bind=\"!locationValid\"><div class=\"text-center\"><a click.delegate=\"closeDialog()\" class=\"button button-raised\">Ok</a></div></div><nav-popup heading=\"${heading}\" actions.bind=\"actions\"></nav-popup><div class=\"content-block\" if.bind=\"locationValid\"><form id=\"add-party\" role=\"form\" submit.delegate=\"submit()\"><pickup-destination hotel=\"${app.authContext.currentLocation()}\" from.bind=\"pickup & validate\" to.bind=\"destination & validate\"></pickup-destination><date-time-picker value.bind=\"departureTime & validate\">></date-time-picker><div class=\"list-block\"><ul class=\"no-top-border\"><form-element label=\"Party Name\" containerless><input value.bind=\"partyName & validate\" type=\"text\"></form-element><form-element label=\"Party Size\" containerless><numeric-input id=\"party-size\" value.bind=\"partySize & validate\"></numeric-input></form-element><form-element label=\"Contact #\" containerless><phone-number id=\"contact-number\" value.bind=\"contactNumber & validate\"></phone-number></form-element><form-element label=\"Room #\" containerless><numeric-input id=\"room-number\" value.bind=\"roomNumber\"></numeric-input></form-element><form-element label=\"Email\" containerless><input class=\"form-control\" id=\"email\" type=\"email\" value.bind=\"email & validate\"></form-element><form-element label=\"Trip Notes\" containerless><textarea value.bind=\"tripNotes & validate\" rows=\"3\"></textarea></form-element></ul></div><div class=\"content-block\"><div class=\"row\"><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button button-raised\">Ok</a></div></div></div></form></div></template>";
+});
+
+})();
+(function() {
+var define = System.amdDefine;
+define("app/popup.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template><div id=\"popup\" class=\"popup tablet-fullscreen\"><div class=\"view popup-view text-normal\"><compose if.bind=\"canShowPopup\" view-model.bind=\"view\" model.bind=\"{model: model, actions:actions}\"></compose></div></div></template>";
+});
+
+})();
+'use strict';
+
+System.register('app/popup.js', ['aurelia-framework', 'app/app-base'], function (_export, _context) {
+  "use strict";
+
+  var computedFrom, AppBase, _createClass, _dec, _dec2, _dec3, _desc, _value, _class, Popup;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+      desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+      desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+      return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+      desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+      desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+      Object['define' + 'Property'](target, property, desc);
+      desc = null;
+    }
+
+    return desc;
+  }
+
+  return {
+    setters: [function (_aureliaFramework) {
+      computedFrom = _aureliaFramework.computedFrom;
+    }, function (_appAppBase) {
+      AppBase = _appAppBase.AppBase;
+    }],
+    execute: function () {
+      _createClass = function () {
+        function defineProperties(target, props) {
+          for (var i = 0; i < props.length; i++) {
+            var descriptor = props[i];
+            descriptor.enumerable = descriptor.enumerable || false;
+            descriptor.configurable = true;
+            if ("value" in descriptor) descriptor.writable = true;
+            Object.defineProperty(target, descriptor.key, descriptor);
+          }
+        }
+
+        return function (Constructor, protoProps, staticProps) {
+          if (protoProps) defineProperties(Constructor.prototype, protoProps);
+          if (staticProps) defineProperties(Constructor, staticProps);
+          return Constructor;
+        };
+      }();
+
+      _export('Popup', Popup = (_dec = computedFrom("app.appContext.popupView"), _dec2 = computedFrom("app.appContext.canShowPopup"), _dec3 = computedFrom("appContext.popupModel"), (_class = function (_AppBase) {
+        _inherits(Popup, _AppBase);
+
+        function Popup() {
+          var _temp, _this, _ret;
+
+          _classCallCheck(this, Popup);
+
+          for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+          }
+
+          return _ret = (_temp = (_this = _possibleConstructorReturn(this, _AppBase.call.apply(_AppBase, [this].concat(args))), _this), _this.actions = {
+            close: function close() {
+              _this.app.appContext.closePopup();
+            }
+          }, _temp), _possibleConstructorReturn(_this, _ret);
+        }
+
+        _createClass(Popup, [{
+          key: 'view',
+          get: function get() {
+            return this.app.appContext.popupView;
+          }
+        }, {
+          key: 'canShowPopup',
+          get: function get() {
+            return this.app.appContext.canShowPopup;
+          }
+        }, {
+          key: 'model',
+          get: function get() {
+            return this.app.appContext.popupModel;
+          }
+        }]);
+
+        return Popup;
+      }(AppBase), (_applyDecoratedDescriptor(_class.prototype, 'view', [_dec], Object.getOwnPropertyDescriptor(_class.prototype, 'view'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'canShowPopup', [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, 'canShowPopup'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'model', [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, 'model'), _class.prototype)), _class)));
+
+      _export('Popup', Popup);
+    }
+  };
+});
+
+(function() {
+var define = System.amdDefine;
+define("app/show-archived.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template><div if.bind=\"app.appContext.selectedParty\" class=\"card\"><div class=\"card-header\"><span>${app.appContext.selectedParty.paddedNumber}</span></div><div class=\"card-content\"><div class=\"list-block\"><ul><li class=\"item-content\" repeat.for=\"header of headers\"><div class=\"item-inner\"><div class=\"item-title\">${header}</div><div class=\"item-after\">${headerVal($index)}</div></div></li></ul></div></div></div></template>";
+});
+
+})();
+'use strict';
+
+System.register('app/show-archived.js', ['app/utils/table', 'app/app-base'], function (_export, _context) {
+  "use strict";
+
+  var TableUtils, AppBase, ShowArchived;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _possibleConstructorReturn(self, call) {
+    if (!self) {
+      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+    }
+
+    return call && (typeof call === "object" || typeof call === "function") ? call : self;
+  }
+
+  function _inherits(subClass, superClass) {
+    if (typeof superClass !== "function" && superClass !== null) {
+      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
+    }
+
+    subClass.prototype = Object.create(superClass && superClass.prototype, {
+      constructor: {
+        value: subClass,
+        enumerable: false,
+        writable: true,
+        configurable: true
+      }
+    });
+    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
+  }
+
+  return {
+    setters: [function (_appUtilsTable) {
+      TableUtils = _appUtilsTable.TableUtils;
+    }, function (_appAppBase) {
+      AppBase = _appAppBase.AppBase;
+    }],
+    execute: function () {
+      _export('ShowArchived', ShowArchived = function (_AppBase) {
+        _inherits(ShowArchived, _AppBase);
+
+        function ShowArchived() {
+          var _temp, _this, _ret;
+
+          _classCallCheck(this, ShowArchived);
+
+          for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+            args[_key] = arguments[_key];
+          }
+
+          return _ret = (_temp = (_this = _possibleConstructorReturn(this, _AppBase.call.apply(_AppBase, [this].concat(args))), _this), _this.props = ["partyNumber", "status", "pickup", "destination", "date", "departure", "partySize", "contactNumber", "partyName"], _temp), _possibleConstructorReturn(_this, _ret);
+        }
+
+        ShowArchived.prototype.headerVal = function headerVal(index) {
+          var prop = this.props[index];
+          var party = this.app.appContext.selectedParty;
+          if (this.accessors && this.accessors[prop]) {
+            return this.accessors[prop](party);
+          } else {
+            return party[prop];
+          }
+        };
+
+        ShowArchived.prototype.bind = function bind() {
+          this.headers = TableUtils.headersFromProperties(this.props, this.headers || {});
+        };
+
+        return ShowArchived;
+      }(AppBase));
+
+      _export('ShowArchived', ShowArchived);
+    }
+  };
+});
+
+(function() {
+var define = System.amdDefine;
+define("app/show-party.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template><div if.bind=\"app.appContext.selectedParty\" class=\"card\"><div class=\"card-header\"><span>${app.appContext.selectedParty.paddedNumber}</span></div><div class=\"card-content\"><div class=\"list-block\"><ul><li class=\"item-content\" repeat.for=\"header of headers\"><div class=\"item-inner\"><div class=\"item-title\">${header}</div><div class=\"item-after\">${headerVals[props[$index]]}</div></div></li></ul></div></div></div></template>";
+});
+
+})();
+'use strict';
+
+System.register('app/resource-dialog.js', ['aurelia-framework', 'app/models', 'app/utils'], function (_export, _context) {
+  "use strict";
+
+  var inject, Models, Utils, ResourceDialog;
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  return {
+    setters: [function (_aureliaFramework) {
+      inject = _aureliaFramework.inject;
+    }, function (_appModels) {
+      Models = _appModels.Models;
+    }, function (_appUtils) {
+      Utils = _appUtils.Utils;
+    }],
+    execute: function () {
+      _export('ResourceDialog', ResourceDialog = function () {
+        function ResourceDialog() {
+          var _this = this;
+
+          _classCallCheck(this, ResourceDialog);
+
+          this.staticMode = false;
+          this.actions = {
+            closePopup: function closePopup() {
+              return _this.closeDialog();
+            }
+          };
+
+          this.dialogInit();
+        }
+
+        ResourceDialog.prototype.viewModel = function viewModel() {
+          if (this.staticMode) {
+            return this.dialogStaticViewModel;
+          } else {
+            return this.dialogViewModel;
+          }
+        };
+
+        ResourceDialog.prototype.closeDialog = function closeDialog() {
+          this.app.appContext.closePopup();
+        };
+
+        ResourceDialog.prototype.dialogOpenStatic = function dialogOpenStatic(model) {
+          this.staticMode = true;
+          this.dialogOpen(model);
+        };
+
+        ResourceDialog.prototype.dialogInit = function dialogInit() {};
+
+        ResourceDialog.prototype.dialogOpenEditResource = function dialogOpenEditResource(model) {
+          this.dialogOpen(model);
+        };
+
+        ResourceDialog.prototype.dialogOpen = function dialogOpen() {
+          var model = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+        };
+
+        ResourceDialog.prototype.dialogOpenSuccess = function dialogOpenSuccess() {};
+
+        ResourceDialog.prototype.dialogOpenCancelled = function dialogOpenCancelled() {};
+
+        ResourceDialog.prototype.resourceModel = function resourceModel() {
+          return Models.get(this.resourceName());
+        };
+
+        ResourceDialog.prototype.toModel = function toModel() {
+          var target = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : undefined;
+
+          var params = {};
+          var model = this;
+          if (target) {
+            model = target;
+          }
+          var Model = this.resourceModel();
+          Utils.forEachModelProp(Model, function (prop) {
+            params[prop] = model[prop];
+          });
+          return new Model(params);
+        };
+
+        ResourceDialog.prototype.resourceName = function resourceName() {
+          return this.constructor.dialogResourceName;
+        };
+
+        ResourceDialog.prototype.dialogCancel = function dialogCancel() {};
+
+        ResourceDialog.prototype.dialogClose = function dialogClose() {};
+
+        return ResourceDialog;
+      }());
+
+      _export('ResourceDialog', ResourceDialog);
     }
   };
 });
@@ -6260,10 +7692,10 @@ System.register('app/stores.js', ['aurelia-framework', 'app/stores/index'], func
 
 'use strict';
 
-System.register('app/resource-dialog-form.js', ['app/resource-dialog', 'aurelia-framework', 'app/bootstrap-form', 'aurelia-validation', 'app/utils', 'app/stores', 'app/app', 'app/collection'], function (_export, _context) {
+System.register('app/add-resource-dialog.js', ['app/resource-dialog', 'aurelia-framework', 'app/stores', 'app/utils', 'app/api'], function (_export, _context) {
   "use strict";
 
-  var ResourceDialog, inject, BootstrapForm, ValidationRules, Utils, Stores, App, Collection, _dec, _class, submit, ResourceDialogForm;
+  var ResourceDialog, inject, bindable, Stores, Utils, Api, _dec, _dec2, _class, AddResourceDialog;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -6300,256 +7732,156 @@ System.register('app/resource-dialog-form.js', ['app/resource-dialog', 'aurelia-
       ResourceDialog = _appResourceDialog.ResourceDialog;
     }, function (_aureliaFramework) {
       inject = _aureliaFramework.inject;
-    }, function (_appBootstrapForm) {
-      BootstrapForm = _appBootstrapForm.BootstrapForm;
-    }, function (_aureliaValidation) {
-      ValidationRules = _aureliaValidation.ValidationRules;
-    }, function (_appUtils) {
-      Utils = _appUtils.Utils;
+      bindable = _aureliaFramework.bindable;
     }, function (_appStores) {
       Stores = _appStores.Stores;
-    }, function (_appApp) {
-      App = _appApp.App;
-    }, function (_appCollection) {
-      Collection = _appCollection.Collection;
+    }, function (_appUtils) {
+      Utils = _appUtils.Utils;
+    }, function (_appApi) {
+      Api = _appApi.Api;
     }],
     execute: function () {
-      submit = function submit(success) {
-        var _this = this;
+      _export('AddResourceDialog', AddResourceDialog = (_dec = inject(Stores, Api), _dec2 = bindable("edited"), _dec(_class = _dec2(_class = function (_ResourceDialog) {
+        _inherits(AddResourceDialog, _ResourceDialog);
 
-        var error = function error(errors) {
-          errors.forEach(function (error) {
-            _this.app.notifier.formError(error);
-          });
-        };
-        this.bootstrapForm.validateSubmit(function () {
-          return Promise.resolve(success()).then(function () {
-            _this.app.appContext.closePopup();
-          }).catch(function (err) {
-            _this.app.notifier.danger(err);
-          });
-        }, error);
-      };
+        function AddResourceDialog(stores, api) {
+          _classCallCheck(this, AddResourceDialog);
 
-      _export('ResourceDialogForm', ResourceDialogForm = (_dec = inject(BootstrapForm, Stores, App), _dec(_class = function (_ResourceDialog) {
-        _inherits(ResourceDialogForm, _ResourceDialog);
-
-        function ResourceDialogForm(bootstrapForm, stores, app) {
-          _classCallCheck(this, ResourceDialogForm);
-
-          for (var _len = arguments.length, args = Array(_len > 3 ? _len - 3 : 0), _key = 3; _key < _len; _key++) {
-            args[_key - 3] = arguments[_key];
+          for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
+            args[_key - 2] = arguments[_key];
           }
 
-          var _this2 = _possibleConstructorReturn(this, _ResourceDialog.call.apply(_ResourceDialog, [this].concat(args)));
+          var _this = _possibleConstructorReturn(this, _ResourceDialog.call.apply(_ResourceDialog, [this].concat(args)));
 
-          _this2.bootstrapForm = bootstrapForm;
-          _this2.stores = stores;
-          _this2.app = app;
-          _this2.collection = Collection;
-          _this2.store = stores.get(_this2.resourceName());
-          _this2.bootstrapForm.configureFormValidationRules(_this2, function (rules) {
-            _this2.validationRules = _this2.formValidationRules(rules);
-            return _this2.validationRules;
-          });
-          return _this2;
-        }
+          _this.subscribers = [];
+          _this.showHeader = true;
+          _this.selectable = true;
+          _this.subscriptions = {
+            "added": "resourceAdded",
+            "updated": "resourceUpdated",
+            "deleted": "resourceDeleted"
+          };
+          _this.actionTrigger = {
+            add: function add() {
+              _this.addResource();
+            },
+            edit: function edit(resource) {
 
-        ResourceDialogForm.prototype.initFromModel = function initFromModel(model) {
-          var _this3 = this;
-
-          this.id = model.id;
-          Utils.forEachModelProp(this.resourceModel(), function (prop) {
-            if (!Utils.isNullOrUndefined(model[prop])) {
-              _this3[prop] = model[prop];
+              _this.editResource(resource);
+            },
+            delete: function _delete(resource) {
+              _this.deleteResource(resource);
             }
-          });
-        };
+          };
 
-        ResourceDialogForm.prototype.activate = function activate(options) {
-          this.options = options;
-          var Model = this.resourceModel();
-          var model = new Model(options.model);
-          this.editMode = !model.isNew();
-          if (this.editMode) {
-            this.heading = 'Edit ' + Utils.capitalize(this.resourceName());
-          }
-
-          this.initFromModel(options.model);
-        };
-
-        ResourceDialogForm.prototype.formValidationRules = function formValidationRules(rules) {};
-
-        ResourceDialogForm.prototype.addItemSubmit = function addItemSubmit() {
-          var _this4 = this;
-
-          console.log('adding item!!!!');
-          submit.call(this, function () {
-            return _this4.store.addItem(_this4.toModel());
-          });
-        };
-
-        ResourceDialogForm.prototype.editItemSubmit = function editItemSubmit() {
-          var _this5 = this;
-
-          submit.call(this, function () {
-            return _this5.store.updateItem(Object.assign(_this5.toModel(), { id: _this5.id }));
-          });
-        };
-
-        ResourceDialogForm.prototype.disableValidationRules = function disableValidationRules() {
-          this.bootstrapForm.validationRules().off(this);
-        };
-
-        ResourceDialogForm.prototype.enableValidationRules = function enableValidationRules() {
-          this.validationRules.on(this);
-        };
-
-        ResourceDialogForm.prototype.submit = function submit() {
-          console.log('submitting form!!!!!!');
-          if (this.editMode) {
-            this.editItemSubmit();
-          } else {
-            this.addItemSubmit();
-          }
-        };
-
-        return ResourceDialogForm;
-      }(ResourceDialog)) || _class));
-
-      _export('ResourceDialogForm', ResourceDialogForm);
-    }
-  };
-});
-
-"use strict";
-
-System.register("app/parties/add-party.js", ["app/resource-dialog-form"], function (_export, _context) {
-  "use strict";
-
-  var ResourceDialogForm, _createClass, _class, _temp2, AddParty;
-
-  function _classCallCheck(instance, Constructor) {
-    if (!(instance instanceof Constructor)) {
-      throw new TypeError("Cannot call a class as a function");
-    }
-  }
-
-  function _possibleConstructorReturn(self, call) {
-    if (!self) {
-      throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
-    }
-
-    return call && (typeof call === "object" || typeof call === "function") ? call : self;
-  }
-
-  function _inherits(subClass, superClass) {
-    if (typeof superClass !== "function" && superClass !== null) {
-      throw new TypeError("Super expression must either be null or a function, not " + typeof superClass);
-    }
-
-    subClass.prototype = Object.create(superClass && superClass.prototype, {
-      constructor: {
-        value: subClass,
-        enumerable: false,
-        writable: true,
-        configurable: true
-      }
-    });
-    if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
-  }
-
-  return {
-    setters: [function (_appResourceDialogForm) {
-      ResourceDialogForm = _appResourceDialogForm.ResourceDialogForm;
-    }],
-    execute: function () {
-      _createClass = function () {
-        function defineProperties(target, props) {
-          for (var i = 0; i < props.length; i++) {
-            var descriptor = props[i];
-            descriptor.enumerable = descriptor.enumerable || false;
-            descriptor.configurable = true;
-            if ("value" in descriptor) descriptor.writable = true;
-            Object.defineProperty(target, descriptor.key, descriptor);
-          }
+          _this.store = stores.get(_this.resourceName());
+          _this.api = api;
+          _this.store.api = _this.api;
+          return _this;
         }
 
-        return function (Constructor, protoProps, staticProps) {
-          if (protoProps) defineProperties(Constructor.prototype, protoProps);
-          if (staticProps) defineProperties(Constructor, staticProps);
-          return Constructor;
-        };
-      }();
-
-      _export("AddParty", AddParty = (_temp2 = _class = function (_ResourceDialogForm) {
-        _inherits(AddParty, _ResourceDialogForm);
-
-        function AddParty() {
-          var _temp, _this, _ret;
-
-          _classCallCheck(this, AddParty);
-
-          for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
-            args[_key] = arguments[_key];
-          }
-
-          return _ret = (_temp = (_this = _possibleConstructorReturn(this, _ResourceDialogForm.call.apply(_ResourceDialogForm, [this].concat(args))), _this), _this.heading = "Add Party", _this.partySize = 1, _temp), _possibleConstructorReturn(_this, _ret);
-        }
-
-        AddParty.prototype.validatesPickupDestination = function validatesPickupDestination(destination) {
-          if (destination) {
-            return destination != this.pickup;
-          }
+        AddResourceDialog.prototype.initActionTrigger = function initActionTrigger() {
+          this.actionTrigger = Object.assign({}, this.actionTrigger, this.actionTriggers || {});
         };
 
-        AddParty.prototype.formValidationRules = function formValidationRules(rules) {
+        AddResourceDialog.prototype.getApi = function getApi() {
+          return this.api;
+        };
+
+        AddResourceDialog.prototype.resourceDeleted = function resourceDeleted(resource) {
+          var model = this.resourceToModel(resource);
+          this.removeFromCollection(resource);
+          this.deleted = model;
+          this.api.notifier.success(Utils.capitalize(this.resourceName()) + ' archived successfully.');
+        };
+
+        AddResourceDialog.prototype.removeFromCollection = function removeFromCollection(resource) {
+          Utils.removeFromCollection(resource, this.collection());
+        };
+
+        AddResourceDialog.prototype.deleteResource = function deleteResource(resource) {
           var _this2 = this;
 
-          return rules.ensure(function (a) {
-            return a.partyName;
-          }).required().ensure(function (a) {
-            return a.departureTime;
-          }).required().ensure(function (a) {
-            return a.pickup;
-          }).required().ensure(function (a) {
-            return a.destination;
-          }).required().satisfies(function (destination) {
-            return destination != _this2.pickup;
-          }).withMessage('Destination must be different from pickup').when(function (a) {
-            return a.destination.length > 0;
-          }).ensure(function (a) {
-            return a.contactNumber;
-          }).satisfiesRule("phoneLength").ensure(function (a) {
-            return a.email;
-          }).email().when(function (a) {
-            return a.email !== undefined && a.email.length > 0;
-          }).ensure(function (a) {
-            return a.partySize;
-          }).satisfiesRule('positiveInteger');
+          this.store.deleteItem(resource).catch(function (err) {
+            _this2.api.notifier.danger(err);
+          });
         };
 
-        _createClass(AddParty, [{
-          key: "locationValid",
-          get: function get() {
-            return this.app.authContext.hasLocation();
+        AddResourceDialog.prototype.editResource = function editResource(resource) {
+          this.dialogOpenEditResource(resource);
+        };
+
+        AddResourceDialog.prototype.addResource = function addResource() {
+          this.dialogOpenAddResource();
+        };
+
+        AddResourceDialog.prototype.dialogOpenAddResource = function dialogOpenAddResource() {
+          this.dialogOpen();
+        };
+
+        AddResourceDialog.prototype.viewModel = function viewModel() {
+          if (this.staticMode) {
+            return _ResourceDialog.prototype.viewModel.call(this);
+          } else {
+            return this.dialogAddResourceViewModel;
           }
-        }]);
+        };
 
-        return AddParty;
-      }(ResourceDialogForm), _class.dialogResourceName = "party", _temp2));
+        AddResourceDialog.prototype.resourceAdded = function resourceAdded(resource) {
+          var model = this.resourceToModel(resource);
+          Utils.addToCollection(model, this.collection());
+          this.api.notifier.success(Utils.capitalize(this.resourceName()) + ' added successfully.');
+        };
 
-      _export("AddParty", AddParty);
+        AddResourceDialog.prototype.resourceUpdated = function resourceUpdated(resource) {
+          var model = this.resourceToModel(resource);
+
+          this.edited = model;
+          this.api.notifier.success(Utils.capitalize(this.resourceName()) + ' updated successfully.');
+        };
+
+        AddResourceDialog.prototype.collection = function collection() {
+          var collectionName = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : undefined;
+
+          return this[collectionName || this.collectionName()];
+        };
+
+        AddResourceDialog.prototype.resourceToModel = function resourceToModel(resource) {
+          var model = this.toModel(resource);
+          model.id = resource.id;
+          return model;
+        };
+
+        AddResourceDialog.prototype.collectionName = function collectionName() {
+          return Utils.collectionName(this.resourceName());
+        };
+
+        AddResourceDialog.prototype.addStoreSubscriptions = function addStoreSubscriptions() {
+          if (this.store) {
+            this.subscribers = this.store.addSubscriptions(this, this.subscriptions);
+          }
+        };
+
+        AddResourceDialog.prototype.removeStoreSubscriptions = function removeStoreSubscriptions() {
+          if (this.store) {
+            this.store.removeSubscriptions(this.subscribers);
+          }
+        };
+
+        return AddResourceDialog;
+      }(ResourceDialog)) || _class) || _class));
+
+      _export('AddResourceDialog', AddResourceDialog);
     }
   };
 });
 
 'use strict';
 
-System.register('app/parties.js', ['aurelia-framework', 'app/add-resource-dialog', 'app/parties/add-party', 'app/auth-context', 'app/utils', 'app/app'], function (_export, _context) {
+System.register('app/show-party.js', ['aurelia-framework', 'app/app', 'app/utils', 'app/models/party', 'app/utils/table', 'app/add-resource-dialog'], function (_export, _context) {
   "use strict";
 
-  var bindable, AddResourceDialog, AddParty, AuthContext, Utils, App, _desc, _value, _class, _descriptor, _class2, _temp, visibilityFn, Parties;
+  var bindable, App, Utils, PartyModel, TableUtils, AddResourceDialog, _desc, _value, _class, _descriptor, _descriptor2, _class2, _temp, ShowParty;
 
   function _initDefineProp(target, property, descriptor, context) {
     if (!descriptor) return;
@@ -6627,171 +7959,124 @@ System.register('app/parties.js', ['aurelia-framework', 'app/add-resource-dialog
   return {
     setters: [function (_aureliaFramework) {
       bindable = _aureliaFramework.bindable;
-    }, function (_appAddResourceDialog) {
-      AddResourceDialog = _appAddResourceDialog.AddResourceDialog;
-    }, function (_appPartiesAddParty) {
-      AddParty = _appPartiesAddParty.AddParty;
-    }, function (_appAuthContext) {
-      AuthContext = _appAuthContext.AuthContext;
-    }, function (_appUtils) {
-      Utils = _appUtils.Utils;
     }, function (_appApp) {
       App = _appApp.App;
+    }, function (_appUtils) {
+      Utils = _appUtils.Utils;
+    }, function (_appModelsParty) {
+      PartyModel = _appModelsParty.PartyModel;
+    }, function (_appUtilsTable) {
+      TableUtils = _appUtilsTable.TableUtils;
+    }, function (_appAddResourceDialog) {
+      AddResourceDialog = _appAddResourceDialog.AddResourceDialog;
     }],
     execute: function () {
-      visibilityFn = function visibilityFn(propHeader) {
-        switch (true) {
-          case /party #|partyNumber|departure|status/i.test(propHeader):
-            return "";
-          default:
-            return "hidden-sm-down";
-        }
-      };
+      _export('ShowParty', ShowParty = (_class = (_temp = _class2 = function (_AddResourceDialog) {
+        _inherits(ShowParty, _AddResourceDialog);
 
-      _export('Parties', Parties = (_class = (_temp = _class2 = function (_AddResourceDialog) {
-        _inherits(Parties, _AddResourceDialog);
-
-        Parties.inject = function inject() {
-          return [AuthContext, App];
+        ShowParty.inject = function inject() {
+          return [App];
         };
 
-        function Parties(authContext, app) {
-          _classCallCheck(this, Parties);
+        function ShowParty(app) {
+          _classCallCheck(this, ShowParty);
 
-          for (var _len = arguments.length, args = Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-            args[_key - 2] = arguments[_key];
+          for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+            args[_key - 1] = arguments[_key];
           }
 
           var _this = _possibleConstructorReturn(this, _AddResourceDialog.call.apply(_AddResourceDialog, [this].concat(args)));
 
-          _this.actionTriggers = {
-            dblclick: function dblclick(party) {
-              _this.dialogOpenStatic(party);
-            },
-            startTrip: function startTrip() {
-              var party = _this.app.appContext.selectedParties()[0];
-              _this.getApi().startTrip(_this.driverId, party.departureTime, party.pickup, party.destination, _this.app.appContext.driverShuttleId).then(function (updated) {
-                _this.app.router.navigateToRoute("active-trip").then(function () {
-                  return _this.actionSuccess("Trip started successfully.");
-                });
-              }).catch(function (err) {
-                return _this.actionError(err);
-              });
-            }
-          };
+          _initDefineProp(_this, 'edited', _descriptor, _this);
 
-          _initDefineProp(_this, 'parties', _descriptor, _this);
+          _initDefineProp(_this, 'deleted', _descriptor2, _this);
 
-          _this.actions = {
-            partySelected: function partySelected(selectedRows) {
-              _this.app.appContext.selectedRows = selectedRows;
-              _this.app.appContext.partyController = _this;
-              return true;
-            }
-          };
-          _this.visibility = {
-            header: visibilityFn,
-            prop: visibilityFn
-          };
-          _this.headers = {
-            "departure": "Departure Time",
-            "partyStatus": "Status"
-          };
+          _this.props = ["partyNumber", "status", "pickup", "destination", "date", "departure", "partySize", "contactNumber", "partyName"];
           _this.accessors = {
             "partyNumber": function partyNumber(party) {
               return party.paddedNumber;
             }
           };
-          _this.updateRowClass = {
-            update: function update(row, callback) {
 
-              callback(_this.selectRowClass(row));
-            }
-          };
-
-          _this.authContext = authContext;
           _this.app = app;
           _this.initActionTrigger();
           return _this;
         }
 
-        Parties.prototype.actionSuccess = function actionSuccess(message) {
-          this.api.notifier.success(message);
-        };
-
-        Parties.prototype.actionError = function actionError(message) {
-          this.api.notifier.danger(message);
-        };
-
-        Parties.prototype.selectRowClass = function selectRowClass(party) {
-          var color = "";
-          switch (true) {
-            case party.isLate:
-              color = "red";break;
-            case party.isActive:
-              color = "green";break;
-            case party.isReserved:
-              color = "yellow";break;
-          }
-          if (color.length) {
-            return 'party ' + color;
-          }
-        };
-
-        Parties.prototype.activate = function activate() {
+        ShowParty.prototype.editedChanged = function editedChanged() {
           var _this2 = this;
 
-          this.addStoreSubscriptions();
-          this.app.appContext.selectedRows = [];
-          var isDriver = this.authContext.isDriver();
-          if (isDriver) {
-            this.driverId = this.authContext.currentUser.id;
-            this.actionView = "app/components/resource-table/actions/driver-trips";
-          }
-          return this.app.appContext.loadLocations().then(function () {
-            return _this2.app.appContext.loadReservedActiveParties(_this2).then(function () {
-              return _this2.parties = _this2.reservedActiveParties;
+          if (this.app.appContext.selectedParty) {
+            Utils.forEachModelProp(PartyModel, function (prop) {
+              _this2.app.appContext.selectedParty[prop] = _this2.edited[prop];
+              _this2.headerVals[prop] = _this2.headerVal(prop);
             });
-          });
+          }
         };
 
-        Parties.prototype.deactivate = function deactivate() {
+        ShowParty.prototype.deletedChanged = function deletedChanged() {
+          this.app.appContext.selectedPartyActions.partyDeleted();
+          this.app.router.navigateToRoute("parties");
+        };
+
+        ShowParty.prototype.headerVal = function headerVal(prop) {
+          var party = this.app.appContext.selectedParty;
+          if (this.accessors[prop]) {
+            return this.accessors[prop](party);
+          } else {
+            return party[prop];
+          }
+        };
+
+        ShowParty.prototype.bind = function bind() {
+          var _this3 = this;
+
+          this.headers = TableUtils.headersFromProperties(this.props, this.headers || {});
+          this.app.appContext.partyController = this;
+          this.headerVals = {};
+          var prop = void 0;
+          this.headers.forEach(function (header, index) {
+            prop = _this3.props[index];
+            _this3.headerVals[prop] = _this3.headerVal(prop);
+          });
+          this.parties = [this.app.appContext.selectedParty];
+        };
+
+        ShowParty.prototype.activate = function activate() {
+          this.addStoreSubscriptions();
+        };
+
+        ShowParty.prototype.deactivate = function deactivate() {
           this.removeStoreSubscriptions();
         };
 
-        return Parties;
-      }(AddResourceDialog), _class2.dialogResourceName = "party", _temp), _descriptor = _applyDecoratedDescriptor(_class.prototype, 'parties', [bindable], {
+        return ShowParty;
+      }(AddResourceDialog), _class2.dialogResourceName = "party", _class2.dialogResourceName = "party", _temp), (_descriptor = _applyDecoratedDescriptor(_class.prototype, 'edited', [bindable], {
         enumerable: true,
-        initializer: function initializer() {
-          return [];
-        }
-      }), _class));
+        initializer: null
+      }), _descriptor2 = _applyDecoratedDescriptor(_class.prototype, 'deleted', [bindable], {
+        enumerable: true,
+        initializer: null
+      })), _class));
 
-      _export('Parties', Parties);
+      _export('ShowParty', ShowParty);
     }
   };
 });
 
 (function() {
 var define = System.amdDefine;
-define("app/parties/add-party.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"app/trips/pickup-destination\"></require><require from=\"app/components/date-time-picker\"></require><require from=\"app/components/phone-number\"></require><require from=\"app/components/form-element.html\"></require><require from=\"app/components/third-party/numeric-input\"></require><require from=\"app/location-not-found.html\"></require><location-not-found if.bind=\"!locationValid\"></location-not-found><div class=\"actions content-block\" if.bind=\"!locationValid\"><div class=\"text-center\"><a click.delegate=\"actions.close()\" class=\"button button-raised\">Ok</a></div></div><div class=\"navbar\" if.bind=\"locationValid\"><div class=\"navbar-inner\"><div class=\"left\"></div><div class=\"center\" style=\"left: 0px\">${heading}</div><div class=\"right\"></div></div></div><div class=\"content-block\" if.bind=\"locationValid\"><form id=\"add-party\" role=\"form\" submit.delegate=\"submit()\"><pickup-destination hotel=\"${app.authContext.currentLocation()}\" from.bind=\"pickup & validate\" to.bind=\"destination & validate\"></pickup-destination><date-time-picker value.bind=\"departureTime & validate\">></date-time-picker><div class=\"list-block\"><ul class=\"no-top-border\"><form-element label=\"Party Name\" containerless><input value.bind=\"partyName & validate\" type=\"text\"></form-element><form-element label=\"Party Size\" containerless><numeric-input id=\"party-size\" value.bind=\"partySize & validate\"></numeric-input></form-element><form-element label=\"Contact #\" containerless><phone-number id=\"contact-number\" value.bind=\"contactNumber & validate\"></phone-number></form-element><form-element label=\"Room #\" containerless><numeric-input id=\"room-number\" value.bind=\"roomNumber\"></numeric-input></form-element><form-element label=\"Email\" containerless><input class=\"form-control\" id=\"email\" type=\"email\" value.bind=\"email & validate\"></form-element><form-element label=\"Trip Notes\" containerless><textarea value.bind=\"tripNotes & validate\" rows=\"3\"></textarea></form-element></ul></div><div class=\"content-block\"><div class=\"row\"><div class=\"col-auto\"><a click.delegate=\"actions.close()\" class=\"button button-raised\">Cancel</a></div><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button button-raised\">Ok</a></div></div></div></form></div></template>";
-});
-
-})();
-(function() {
-var define = System.amdDefine;
-define("app/popup.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><div id=\"popup\" class=\"popup tablet-fullscreen\"><div class=\"view popup-view text-normal\"><compose if.bind=\"canShowPopup\" view-model.bind=\"view\" model.bind=\"{model: model, actions:actions}\"></compose></div></div></template>";
+define("app/show-trip.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template><div if.bind=\"app.appContext.selectedTrip\" class=\"card\"><div class=\"card-header\"><span>${app.appContext.selectedTrip.paddedNumber}</span></div><div class=\"card-content\"><div class=\"list-block\"><ul><li class=\"item-content\" repeat.for=\"header of headers\"><div class=\"item-inner\"><div class=\"item-title\">${header}</div><div class=\"item-after\">${headerVal($index)}</div></div></li></ul></div></div></div></template>";
 });
 
 })();
 'use strict';
 
-System.register('app/popup.js', ['aurelia-framework', 'app/app-base'], function (_export, _context) {
+System.register('app/show-trip.js', ['app/utils/table', 'app/app-base'], function (_export, _context) {
   "use strict";
 
-  var computedFrom, AppBase, _createClass, _dec, _dec2, _dec3, _desc, _value, _class, Popup;
+  var TableUtils, AppBase, ShowTrip;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -6823,100 +8108,46 @@ System.register('app/popup.js', ['aurelia-framework', 'app/app-base'], function 
     if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass;
   }
 
-  function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
-    var desc = {};
-    Object['ke' + 'ys'](descriptor).forEach(function (key) {
-      desc[key] = descriptor[key];
-    });
-    desc.enumerable = !!desc.enumerable;
-    desc.configurable = !!desc.configurable;
-
-    if ('value' in desc || desc.initializer) {
-      desc.writable = true;
-    }
-
-    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
-      return decorator(target, property, desc) || desc;
-    }, desc);
-
-    if (context && desc.initializer !== void 0) {
-      desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
-      desc.initializer = undefined;
-    }
-
-    if (desc.initializer === void 0) {
-      Object['define' + 'Property'](target, property, desc);
-      desc = null;
-    }
-
-    return desc;
-  }
-
   return {
-    setters: [function (_aureliaFramework) {
-      computedFrom = _aureliaFramework.computedFrom;
+    setters: [function (_appUtilsTable) {
+      TableUtils = _appUtilsTable.TableUtils;
     }, function (_appAppBase) {
       AppBase = _appAppBase.AppBase;
     }],
     execute: function () {
-      _createClass = function () {
-        function defineProperties(target, props) {
-          for (var i = 0; i < props.length; i++) {
-            var descriptor = props[i];
-            descriptor.enumerable = descriptor.enumerable || false;
-            descriptor.configurable = true;
-            if ("value" in descriptor) descriptor.writable = true;
-            Object.defineProperty(target, descriptor.key, descriptor);
-          }
-        }
+      _export('ShowTrip', ShowTrip = function (_AppBase) {
+        _inherits(ShowTrip, _AppBase);
 
-        return function (Constructor, protoProps, staticProps) {
-          if (protoProps) defineProperties(Constructor.prototype, protoProps);
-          if (staticProps) defineProperties(Constructor, staticProps);
-          return Constructor;
-        };
-      }();
-
-      _export('Popup', Popup = (_dec = computedFrom("app.appContext.popupView"), _dec2 = computedFrom("app.appContext.canShowPopup"), _dec3 = computedFrom("appContext.popupModel"), (_class = function (_AppBase) {
-        _inherits(Popup, _AppBase);
-
-        function Popup() {
+        function ShowTrip() {
           var _temp, _this, _ret;
 
-          _classCallCheck(this, Popup);
+          _classCallCheck(this, ShowTrip);
 
           for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
             args[_key] = arguments[_key];
           }
 
-          return _ret = (_temp = (_this = _possibleConstructorReturn(this, _AppBase.call.apply(_AppBase, [this].concat(args))), _this), _this.actions = {
-            close: function close() {
-              _this.app.appContext.closePopup();
-            }
-          }, _temp), _possibleConstructorReturn(_this, _ret);
+          return _ret = (_temp = (_this = _possibleConstructorReturn(this, _AppBase.call.apply(_AppBase, [this].concat(args))), _this), _this.props = ["tripNumber", "status", "pickup", "destination", "date", "departure", "partySize"], _temp), _possibleConstructorReturn(_this, _ret);
         }
 
-        _createClass(Popup, [{
-          key: 'view',
-          get: function get() {
-            return this.app.appContext.popupView;
+        ShowTrip.prototype.headerVal = function headerVal(index) {
+          var prop = this.props[index];
+          var trip = this.app.appContext.selectedTrip;
+          if (this.accessors && this.accessors[prop]) {
+            return this.accessors[prop](trip);
+          } else {
+            return trip[prop];
           }
-        }, {
-          key: 'canShowPopup',
-          get: function get() {
-            return this.app.appContext.canShowPopup;
-          }
-        }, {
-          key: 'model',
-          get: function get() {
-            return this.app.appContext.popupModel;
-          }
-        }]);
+        };
 
-        return Popup;
-      }(AppBase), (_applyDecoratedDescriptor(_class.prototype, 'view', [_dec], Object.getOwnPropertyDescriptor(_class.prototype, 'view'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'canShowPopup', [_dec2], Object.getOwnPropertyDescriptor(_class.prototype, 'canShowPopup'), _class.prototype), _applyDecoratedDescriptor(_class.prototype, 'model', [_dec3], Object.getOwnPropertyDescriptor(_class.prototype, 'model'), _class.prototype)), _class)));
+        ShowTrip.prototype.bind = function bind() {
+          this.headers = TableUtils.headersFromProperties(this.props, this.headers || {});
+        };
 
-      _export('Popup', Popup);
+        return ShowTrip;
+      }(AppBase));
+
+      _export('ShowTrip', ShowTrip);
     }
   };
 });
@@ -7290,7 +8521,7 @@ System.register('app/trips.js', ['aurelia-framework', 'app/utils/table', 'app/co
 (function() {
 var define = System.amdDefine;
 define("app/trips/pickup-destination.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"app/components/cselect\"></require><div class=\"row text-center\"><div id=\"from\" class=\"col-40 label\">Pickup:<br><a if.bind=\"isstatic\" class=\"btn btn-default\">${from}</a><cselect if.bind=\"!isstatic\" empty-text=\"No locations available\" options.bind=\"locations\" value.bind=\"from\"></cselect></div><div id=\"exchange\" class=\"col-20\"><i if.bind=\"!isstatic\" click.delegate=\"swapFromTo()\" class=\"f7-icons pointer\">reload</i> <i if.bind=\"isstatic\" class=\"f7-icons pointer\">reload</i></div><div id=\"to\" class=\"col-40 label\">Destination:<br><a if.bind=\"isstatic\" class=\"btn btn-default\">${to}</a><cselect if.bind=\"!isstatic\" empty-text=\"No locations available\" options.bind=\"locations\" blank-text=\"Choose a destination\" value.bind=\"to\"></cselect></div></div></template>";
+  return "<template><require from=\"app/components/nselect\"></require><div class=\"row text-center\"><div id=\"from\" class=\"col-40 label\">Pickup:<br><a if.bind=\"isstatic\" class=\"btn btn-default\">${from}</a><nselect if.bind=\"!isstatic\" empty-text=\"No locations available\" options.bind=\"locations\" value.bind=\"from\"></nselect></div><div id=\"exchange\" class=\"col-20\"><i if.bind=\"!isstatic\" click.delegate=\"swapFromTo()\" class=\"f7-icons pointer\">reload</i> <i if.bind=\"isstatic\" class=\"f7-icons pointer\">reload</i></div><div id=\"to\" class=\"col-40 label\">Destination:<br><a if.bind=\"isstatic\" class=\"btn btn-default\">${to}</a><nselect if.bind=\"!isstatic\" empty-text=\"No locations available\" options.bind=\"locations\" blank-text=\"Choose a destination\" value.bind=\"to\"></nselect></div></div></template>";
 });
 
 })();
@@ -7533,7 +8764,7 @@ System.register('app/config/app-router.js', ['app/authorize-step', 'app/skip-mai
         config.addPipelineStep('authorize', AuthRoleStep);
         config.addPipelineStep('authorize', SkipMainViewStep);
         config.addPipelineStep('authorize', ActiveTripStep);
-        config.map([{ route: '', name: 'home', redirect: 'parties' }, { route: 'parties', name: 'parties', moduleId: 'app/parties', nav: true, title: 'Parties', auth: true }, { route: 'trips', name: 'trips', moduleId: 'app/trips', nav: true, title: 'Trips', auth: true }, { route: 'active-trip', name: 'active-trip', moduleId: 'app/active-trip', nav: false, title: 'Active Trip', auth: true }, { route: 'login', name: 'login', moduleId: 'app/auth/login', nav: false, title: 'Login', settings: { skipMainView: true } }, { route: 'logout', name: 'logout', moduleId: 'app/auth/logout', auth: true, nav: false, title: 'Logout' }, { route: 'reset-password-confirm', name: 'reset-password-confirm', moduleId: 'app/auth/reset-password-confirm', nav: false, title: 'Reset Password Confirm', settings: { skipMainView: true } }, { route: 'reset-password-request', name: 'reset-password-request', moduleId: 'app/auth/reset-password-request', nav: false, title: 'Reset Password Request', settings: { skipMainView: true } }, { route: 'reset-pin-request', name: 'reset-pin-request', moduleId: 'app/auth/reset-pin-request', nav: false, title: 'Reset Pin Request', settings: { skipMainView: true } }, { route: 'reset-pin-confirm', name: 'reset-pin-confirm', moduleId: 'app/auth/reset-pin-confirm', nav: false, title: 'Reset Pin Confirm', settings: { skipMainView: true } }]);
+        config.map([{ route: '', name: 'home', redirect: 'parties' }, { route: 'parties', name: 'parties', moduleId: 'app/parties', nav: true, title: 'Parties', auth: true }, { route: 'trips', name: 'trips', moduleId: 'app/trips', nav: true, title: 'Trips', auth: true }, { route: 'show-archived', name: 'show-archived', moduleId: 'app/show-archived', nav: true, title: 'Show Archived', auth: true }, { route: 'show-party', name: 'show-party', moduleId: 'app/show-party', nav: true, title: 'Show Party', auth: true }, { route: 'show-trip', name: 'show-trip', moduleId: 'app/show-trip', nav: true, title: 'Show Party', auth: true }, { route: 'active-trip', name: 'active-trip', moduleId: 'app/active-trip', nav: false, title: 'Active Trip', auth: true }, { route: 'login', name: 'login', moduleId: 'app/auth/login', nav: false, title: 'Login', settings: { skipMainView: true } }, { route: 'logout', name: 'logout', moduleId: 'app/auth/logout', auth: true, nav: false, title: 'Logout' }, { route: 'reset-password-confirm', name: 'reset-password-confirm', moduleId: 'app/auth/reset-password-confirm', nav: false, title: 'Reset Password Confirm', settings: { skipMainView: true } }, { route: 'reset-password-request', name: 'reset-password-request', moduleId: 'app/auth/reset-password-request', nav: false, title: 'Reset Password Request', settings: { skipMainView: true } }, { route: 'reset-pin-request', name: 'reset-pin-request', moduleId: 'app/auth/reset-pin-request', nav: false, title: 'Reset Pin Request', settings: { skipMainView: true } }, { route: 'reset-pin-confirm', name: 'reset-pin-confirm', moduleId: 'app/auth/reset-pin-confirm', nav: false, title: 'Reset Pin Confirm', settings: { skipMainView: true } }]);
         config.mapUnknownRoutes('app/not-found');
     });
 
@@ -7556,7 +8787,7 @@ System.register('app/config/app-router.js', ['app/authorize-step', 'app/skip-mai
 System.register('app/app.js', ['aurelia-framework', 'app/config/app-router', 'app/auth-context', 'app/app-context', 'app/auth-service', 'app/notifier', 'app/api', 'local-storage'], function (_export, _context) {
   "use strict";
 
-  var inject, Aurelia, AppRouterConfig, computedFrom, AuthContext, AppContext, AuthService, Notifier, Api, ls, _createClass, _dec, _dec2, _class, _desc, _value, _class2, App;
+  var inject, AppRouterConfig, computedFrom, AuthContext, AppContext, AuthService, Notifier, Api, ls, _createClass, _dec, _dec2, _class, _desc, _value, _class2, App;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -7596,7 +8827,6 @@ System.register('app/app.js', ['aurelia-framework', 'app/config/app-router', 'ap
   return {
     setters: [function (_aureliaFramework) {
       inject = _aureliaFramework.inject;
-      Aurelia = _aureliaFramework.Aurelia;
       computedFrom = _aureliaFramework.computedFrom;
     }, function (_appConfigAppRouter) {
       AppRouterConfig = _appConfigAppRouter.default;
@@ -7632,8 +8862,8 @@ System.register('app/app.js', ['aurelia-framework', 'app/config/app-router', 'ap
         };
       }();
 
-      _export('App', App = (_dec = inject(Aurelia, AuthContext, AppContext, AuthService, Notifier, Api), _dec2 = computedFrom("authContext.isAuthenticated", "appContext.skipMainView"), _dec(_class = (_class2 = function () {
-        function App(aurelia, authContext, appContext, authService, notifier, api) {
+      _export('App', App = (_dec = inject(AuthContext, AppContext, AuthService, Notifier, Api), _dec2 = computedFrom("authContext.isAuthenticated", "appContext.skipMainView"), _dec(_class = (_class2 = function () {
+        function App(authContext, appContext, authService, notifier, api) {
           var _this = this;
 
           _classCallCheck(this, App);
@@ -7644,7 +8874,6 @@ System.register('app/app.js', ['aurelia-framework', 'app/config/app-router', 'ap
             }
           };
 
-          this.aurelia = aurelia;
           this.authContext = authContext;
           this.appContext = appContext;
           this.authService = authService;
@@ -8223,6 +9452,7 @@ System.register('app/api.js', ['app/deferred', 'app/notifier'], function (_expor
           deferred = deferred.catch(function (err) {
             _this2.isRequesting = false;
             var errMessage = err ? err.errors || err.message : _this2.defaultErrMessage;
+            console.log('whooops', err);
             if (catchError) {
               _this2.notifier.danger(errMessage);
             } else {
@@ -8458,7 +9688,7 @@ System.register('app/collection.js', ['app/data-source', 'app/utils'], function 
 System.register('app/app-context.js', ['app/api', 'app/net', 'app/f7', 'aurelia-framework', 'app/collection', 'app/utils', 'app/auth-context', 'local-storage'], function (_export, _context) {
   "use strict";
 
-  var Api, Net, f7, computedFrom, Collection, Utils, AuthContext, ls, _createClass, _dec, _desc, _value, _class, AppContext;
+  var Api, Net, f7, computedFrom, Collection, Utils, AuthContext, ls, _createClass, _dec, _desc, _value, _class, popupSelector, nPopupSelector, AppContext;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -8532,6 +9762,9 @@ System.register('app/app-context.js', ['app/api', 'app/net', 'app/f7', 'aurelia-
         };
       }();
 
+      popupSelector = '#popup.popup';
+      nPopupSelector = '#npopup.npopup';
+
       _export('AppContext', AppContext = (_dec = computedFrom("api.isRequesting", "net.isRequesting"), (_class = function () {
         AppContext.inject = function inject() {
           return [Api, Net, f7, AuthContext];
@@ -8553,7 +9786,7 @@ System.register('app/app-context.js', ['app/api', 'app/net', 'app/f7', 'aurelia-
         }
 
         AppContext.prototype.closePopup = function closePopup() {
-          this.f7.closeModal('.popup');
+          this.f7.closeModal(popupSelector);
           this.canShowPopup = false;
           if (this.popupCallback) {
             this.popupCallback();
@@ -8567,7 +9800,25 @@ System.register('app/app-context.js', ['app/api', 'app/net', 'app/f7', 'aurelia-
           this.popupModel = model;
           this.canShowPopup = true;
           this.popupCallback = callback;
-          this.f7.popup('.popup');
+          this.f7.popup(popupSelector);
+        };
+
+        AppContext.prototype.closeNPopup = function closeNPopup() {
+          this.f7.closeModal(nPopupSelector);
+          this.canShowNPopup = false;
+          if (this.nPopupCallback) {
+            this.nPopupCallback();
+          }
+        };
+
+        AppContext.prototype.showNPopup = function showNPopup(view, model) {
+          var callback = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : undefined;
+
+          this.nPopupView = view;
+          this.nPopupModel = model;
+          this.canShowNPopup = true;
+          this.nPopupCallback = callback;
+          this.f7.popup(nPopupSelector);
         };
 
         AppContext.prototype.loadDriverActiveTrip = function loadDriverActiveTrip() {

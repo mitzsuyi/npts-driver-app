@@ -1,5 +1,11 @@
+#parties .item-media {
+  width:40px;
+}
 #active-trip #parties {
   margin-top:1rem;
+}
+.preloader.preloader-big{
+ 
 }
 .trow {
    display:table-row;
@@ -29,6 +35,10 @@
   margin-right:0.5rem;
 }
 
+.view-main .toolbar-through .page-content,
+.view-main .navbar-fixed .page-content {
+  padding-bottom: 75px
+}
 .page-content.active-trip {
   background-color: white
 }
@@ -51,8 +61,8 @@
 .pointer {
   cursor: pointer;
 }
-.popup-view {
-  overflow: auto;
+.popup .popup-view {
+  overflow: auto !important;
 }
 .text-center {
   text-align: center;
@@ -95,6 +105,9 @@
 }
 .mr20 {
   margin-right: 20px
+}
+.mr20 {
+  margin-right: 10px
 }
 .preloader-big {
   width:42px;
