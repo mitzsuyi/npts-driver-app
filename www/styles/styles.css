@@ -7,6 +7,22 @@
 .preloader.preloader-big{
  
 }
+.list-block.cselect {
+  margin:0;
+  padding:0;
+}
+.list-block.cselect .item-content {
+  padding-left:0;
+}
+ .status.green {
+  background-color:green;
+}
+ .status.yellow {
+  background-color:yellow;
+}
+ .status.red {
+  background-color:red;
+}
 .trow {
    display:table-row;
   width:auto;

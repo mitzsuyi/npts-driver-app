@@ -9,5 +9,6 @@
   </author>
     <engine name="ios" spec="~4.3.1" />
     <engine name="android" spec="~6.0.0" />
-    <access origin="https://npts-shuttle-api.herokuapp.com" />
+    <allow-navigation href="https://npts-shuttle-api.herokuapp.com/*" />
+    <allow-navigation href="*" />
 </widget>

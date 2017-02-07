@@ -1401,7 +1401,7 @@ System.register("app/components/cselect-popup.js", [], function (_export, _conte
 (function() {
 var define = System.amdDefine;
 define("app/components/cselect.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><div class=\"list-block pointer\"><ul class=\"no-top-bottom-border\"><li><a click.delegate=\"openSelect()\" class=\"item-link smart-select\"><div class=\"item-content\"><div class=\"item-inner\"><!-- Select label --><div class=\"item-title\">${title}</div><span if.bind=\"showEmpty\">${emptyText}</span> <span if.bind=\"showBlank\">${blankText}</span><div class=\"item-after\">${valueLabel}</div></div></div></a></li></ul></div></template>";
+  return "<template><div class=\"list-block pointer\"><ul class=\"no-top-bottom-border\"><li><a click.delegate=\"openSelect()\" class=\"item-link smart-select\"><div class=\"item-content\"><div class=\"item-inner\"><!-- Select label --><div class=\"item-title\">${title}</div><span if.bind=\"showEmpty\">${emptyText}</span> <span if.bind=\"showBlank\">Choose...</span><div class=\"item-after\">${valueLabel}</div></div></div></a></li></ul></div></template>";
 });
 
 })();
@@ -1560,6 +1560,7 @@ System.register('app/components/cselect.js', ['aurelia-framework', 'app/app-base
           if (!this.valueLabel) {
             this.valueLabel = this.value;
           }
+          console.log('cselect label', this.value, this.valueLabel, this.options);
         };
 
         CselectCustomElement.prototype.name = function name(option) {
@@ -2325,7 +2326,7 @@ System.register('app/components/nav-bars/active-trip.js', ['./base', 'aurelia-fr
 (function() {
 var define = System.amdDefine;
 define("app/components/nav-bars/base.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"app/components/loader\"></require><require from=\"app/components/back.html\"></require><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left\"><span if.bind=\"onShowParty\" class=\"ml10\"><back title=\"Parties\" action.call=\"navParties()\"></back></span><span if.bind=\"onShowArchived\" class=\"ml10\"><back title=\"Trips\" action.call=\"navTrips()\"></back></span><span if.bind=\"onShowTrip\" class=\"ml10\"><back title=\"Trips\" action.call=\"navTrips()\"></back></span></div><div class=\"center sliding\">${header}</div><div class=\"right\"><loader class=\"mr20\"></loader><a click.delegate=\"logout()\" class=\"link logout-link pointer\"><i class=\"f7-icons\">logout</i></a><div class=\"ml10 nav-circle\">${authContext.currentUser.initials}</div></div></div><div if.bind=\"hasSubNavBar\" class=\"subnavbar\"><div class=\"buttons-row\"><a click.delegate=\"addResource()\" if.bind=\"canAdd && !editable\" class=\"button button-raised pointer\"><i class=\"f7-icons\">add_round</i> </a><a click.delegate=\"startTrip()\" if.bind=\"canStartTrip && !onShowParty && onParties\" class=\"button button-raised pointer\">Start Trip</a> <a click.delegate=\"startTrip()\" if.bind=\"!canStartTrip && !onShowParty && onParties\" class=\"button button-raised pointer\" disabled=\"disabled\">Start Trip</a> <a class=\"button button-raised pointer\" click.delegate=\"editParty()\" if.bind=\"canEdit && editable\"><i class=\"f7-icons\">compose</i></a> <a class=\"button button-raised pointer\" if.bind=\"!canEdit && editable\"><i class=\"f7-icons\" disabled=\"disabled\">compose</i></a> <a click.delegate=\"archiveParty()\" class=\"button button-raised pointer\" if.bind=\"canArchive && editable\"><i class=\"f7-icons\">delete_round</i></a> <a class=\"button button-raised pointer\" if.bind=\"!canArchive && editable\"><i class=\"f7-icons\" disabled=\"disabled\">delete_round</i></a></div></div></div></template>";
+  return "<template><require from=\"app/components/loader\"></require><require from=\"app/components/back.html\"></require><div class=\"navbar\"><div class=\"navbar-inner\"><div class=\"left\"><span if.bind=\"onShowParty\" class=\"ml10\"><back title=\"Parties\" action.call=\"navParties()\"></back></span><span if.bind=\"onShowArchived\" class=\"ml10\"><back title=\"Trips\" action.call=\"navTrips()\"></back></span><span if.bind=\"onShowTrip\" class=\"ml10\"><back title=\"Trips\" action.call=\"navTrips()\"></back></span></div><div class=\"center\">${header}</div><div class=\"right\"><loader class=\"mr20\"></loader><a click.delegate=\"logout()\" class=\"link logout-link pointer\">Logout</a></div></div><div if.bind=\"hasSubNavBar\" class=\"subnavbar\"><div class=\"buttons-row\"><a click.delegate=\"addResource()\" if.bind=\"canAdd && !editable\" class=\"button button-raised pointer\">Add ${resourceName} </a><a click.delegate=\"startTrip()\" if.bind=\"canStartTrip && !onShowParty && onParties\" class=\"button button-raised pointer\">Start Trip</a> <a click.delegate=\"startTrip()\" if.bind=\"!canStartTrip && !onShowParty && onParties\" class=\"button button-raised pointer\" disabled=\"disabled\">Start Trip</a> <a class=\"button button-raised pointer\" click.delegate=\"editParty()\" if.bind=\"canEdit && editable\"><i class=\"f7-icons\">compose</i></a> <a class=\"button button-raised pointer\" if.bind=\"!canEdit && editable\"><i class=\"f7-icons\" disabled=\"disabled\">compose</i></a> <a click.delegate=\"archiveParty()\" class=\"button button-raised pointer\" if.bind=\"canArchive && editable\"><i class=\"f7-icons\">delete_round</i></a> <a class=\"button button-raised pointer\" if.bind=\"!canArchive && editable\"><i class=\"f7-icons\" disabled=\"disabled\">delete_round</i></a></div></div></div></template>";
 });
 
 })();
@@ -2381,6 +2382,10 @@ System.register('app/components/nav-bars/parties.js', ['./base', 'aurelia-framew
 
           return _possibleConstructorReturn(this, _Base.apply(this, arguments));
         }
+
+        Parties.prototype.attached = function attached() {
+          this.resourceName = "Party";
+        };
 
         return Parties;
       }(Base), _class2.header = "Parties", _class2.onParties = true, _class2.addView = "app/parties/add-party", _class2.startTripView = "app/components/trips/confirm-start", _class2.addViewModel = {}, _temp)) || _class));
@@ -2674,7 +2679,7 @@ System.register('app/components/nav-bars/base.js', ['app/auth-context', 'app/app
 
       _export('Base', Base = (_dec = computedFrom("editable"), _dec2 = computedFrom("appContext.selectedRows.size"), _dec3 = computedFrom("editable"), (_class = function () {
         Base.inject = function inject() {
-          return [AuthContext, AppContext, Notifier, App];
+          return [AuthContext, AppContext, Notifier, App, f7];
         };
 
         function Base(authContext, appContext, notifier, app) {
@@ -2696,11 +2701,15 @@ System.register('app/components/nav-bars/base.js', ['app/auth-context', 'app/app
           this.onShowParty = this.constructor.onShowParty || false;
           this.onParties = this.constructor.onParties || false;
           this.startTripView = this.constructor.startTripView;
-          console.log('hasSubNavBar', this.hasSubNavBar);
+          this.f7 = f7;
         }
 
         Base.prototype.logout = function logout() {
-          this.app.actions.logout();
+          var _this = this;
+
+          this.f7.confirm('Are you sure you want to logout?', "NPTS Shuttle", function () {
+            _this.app.actions.logout();
+          }, function () {});
         };
 
         Base.prototype.addResource = function addResource() {
@@ -2716,12 +2725,12 @@ System.register('app/components/nav-bars/base.js', ['app/auth-context', 'app/app
         };
 
         Base.prototype.archiveParty = function archiveParty() {
-          var _this = this;
+          var _this2 = this;
 
           if (this.canArchive) {
             var message = 'Are you sure you want to archive ' + this.appContext.selectedParty.paddedNumber + ' ?';
             f7.confirm(message, 'Archive Party', function () {
-              _this.appContext.partyController.actionTrigger.delete(_this.appContext.selectedParty);
+              _this2.appContext.partyController.actionTrigger.delete(_this2.appContext.selectedParty);
             });
           }
         };
@@ -3111,7 +3120,7 @@ define("app/components/parties/party-header.html!github:systemjs/plugin-text@0.0
 (function() {
 var define = System.amdDefine;
 define("app/components/parties/party-list.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><div id=\"parties\" class=\"list-block media-list\"><ul><li repeat.for=\"party of parties\"><a class=\"item-link pointer item-content\"><div class=\"item-media\"><input id=\"${selectedId(party)}\" type=\"checkbox\" click.delegate=\"selectRow(party, $event)\" checked.bind=\"rowChecked[party.id]\"></div><div class=\"item-inner\" click.delegate=\"showParty(party)\"><div class=\"item-title-row\"><div class=\"item-title\">${party.partyName}</div><div class=\"item-after\">${party.partySize}</div></div><div class=\"item-subtitle\">${party.paddedNumber}</div><div class=\"item-text\"><div class=\"row\"><p>${party.date} ${party.departure}</p><p>Pickup: ${party.pickup}</p></div></div></div></a></li></ul></div></template>";
+  return "<template><div id=\"parties\" class=\"list-block media-list\"><ul><li repeat.for=\"party of parties\"><a class=\"item-link pointer item-content\"><div class=\"item-media\"><input id=\"${selectedId(party)}\" type=\"checkbox\" click.delegate=\"selectRow(party, $event)\" checked.bind=\"rowChecked[party.id]\"></div><div class=\"item-inner\" click.delegate=\"showParty(party)\"><div class=\"item-title-row\"><div class=\"item-title\">${party.partyName}</div><div class=\"item-after\">Party of ${party.partySize}</div></div><div class=\"item-subtitle\"><span class=\"${partyStatusClass(party)}\">${party.paddedNumber}</span></div><div class=\"item-text\"><div class=\"row\"><p>${party.date} ${party.departure}</p><p>Pickup: ${party.pickup}</p></div></div></div></a></li></ul></div></template>";
 });
 
 })();
@@ -3243,7 +3252,22 @@ System.register('app/components/parties/party-list.js', ['aurelia-framework', 'a
         };
 
         PartyList.prototype.selectedId = function selectedId(party) {
-          return "checkbox-${party.id}";
+          return 'checkbox-' + party.id;
+        };
+
+        PartyList.prototype.partyStatusClass = function partyStatusClass(party) {
+          var color = "";
+          switch (true) {
+            case party.isLate:
+              color = "red";break;
+            case party.isActive:
+              color = "green";break;
+            case party.isReserved:
+              color = "yellow";break;
+          }
+          if (color.length) {
+            return 'status ' + color;
+          }
         };
 
         PartyList.prototype.showParty = function showParty(party) {
@@ -3586,6 +3610,7 @@ System.register("app/components/trips/confirm-start.js", ["app/bootstrap-dialog"
           var _this2 = this;
 
           var locationId = this.app.authContext.currentUser.locationId;
+          console.log('selected parties', this.app.appContext.selectedParties(), this.app.appContext.selectedRows);
           this.selectedPartyIds = this.app.appContext.selectedParties().map(function (party) {
             return party.id;
           });
@@ -4674,7 +4699,7 @@ System.register('app/components/trips/confirm-end.js', ['app/bootstrap-dialog', 
 (function() {
 var define = System.amdDefine;
 define("app/components/trips/confirm-start.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"app/components/cselect\"></require><require from=\"./parties\"></require><require from=\"app/components/nav-popup.html\"></require><nav-popup heading=\"${heading}\" actions.bind=\"actions\"></nav-popup><div class=\"content-block text-center color-red\" if.bind=\"!shuttlesAvailable\"><p>Sorry you cannot start the trip, no shuttles are available at your location.</p></div><div if.bind=\"!shuttlesAvailable\"><div class=\"text-center\"><a click.delegate=\"closeDialog()\" class=\"button button-raised\">Ok</a></div></div><form id=\"confirm-start\" role=\"form\" submit.delegate=\"submit()\" if.bind=\"shuttlesAvailable\"><center><p class=\"label\">${message}?</p><div class=\"content-block\"><parties parties.bind=\"app.appContext.reservedActiveParties\" selected.bind=\"selectedPartyIds\" value.bind=\"app.appContext.startTripPartyIds\"></parties></div><div class=\"content-block\"><div class=\"list-block\"><ul class=\"no-top-bottom-border\"><li><div class=\"item-content\"><div class=\"item-inner\"><div class=\"item-title label\">Shuttle:</div><div class=\"item-input\"><cselect form-control=\"false\" empty-text=\"No shuttles available at your location\" options.bind=\"shuttles\" blank-text=\"Please select a shuttle\" value.bind=\"driverShuttleId & validate\"></cselect></div></div></div></li></ul></div></div><div class=\"content-block\"><div class=\"row\"><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button button-raised\">Ok</a></div></div></div></center></form></template>";
+  return "<template><require from=\"app/components/cselect\"></require><require from=\"./parties\"></require><require from=\"app/components/nav-popup.html\"></require><nav-popup heading=\"${heading}\" actions.bind=\"actions\"></nav-popup><div class=\"content-block text-center color-red\" if.bind=\"!shuttlesAvailable\"><p>Sorry you cannot start the trip, no shuttles are available at your location.</p></div><div if.bind=\"!shuttlesAvailable\"><div class=\"text-center\"><a click.delegate=\"closeDialog()\" class=\"button button-raised\">Ok</a></div></div><form id=\"confirm-start\" role=\"form\" submit.delegate=\"submit()\" if.bind=\"shuttlesAvailable\"><center><p class=\"label\">${message}?</p><div class=\"content-block\"><parties parties.bind=\"app.appContext.reservedActiveParties\" selected.bind=\"selectedPartyIds\" value.bind=\"app.appContext.startTripPartyIds\"></parties></div><div class=\"content-block\"><cselect title=\"Shuttle\" empty-text=\"No shuttles available at your location\" options.bind=\"shuttles\" blank-text=\"Select\" value.bind=\"driverShuttleId & validate\"></cselect></div><div class=\"content-block\"><div class=\"row\"><div class=\"col-auto\"><a click.delegate=\"submit()\" class=\"button button-raised\">Ok</a></div></div></div></center></form></template>";
 });
 
 })();
@@ -6704,21 +6729,6 @@ System.register('app/parties.js', ['aurelia-framework', 'app/add-resource-dialog
           this.api.notifier.danger(message);
         };
 
-        Parties.prototype.selectRowClass = function selectRowClass(party) {
-          var color = "";
-          switch (true) {
-            case party.isLate:
-              color = "red";break;
-            case party.isActive:
-              color = "green";break;
-            case party.isReserved:
-              color = "yellow";break;
-          }
-          if (color.length) {
-            return 'party ' + color;
-          }
-        };
-
         Parties.prototype.activate = function activate() {
           var _this2 = this;
 
@@ -8521,7 +8531,7 @@ System.register('app/trips.js', ['aurelia-framework', 'app/utils/table', 'app/co
 (function() {
 var define = System.amdDefine;
 define("app/trips/pickup-destination.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><require from=\"app/components/nselect\"></require><div class=\"row text-center\"><div id=\"from\" class=\"col-40 label\">Pickup:<br><a if.bind=\"isstatic\" class=\"btn btn-default\">${from}</a><nselect if.bind=\"!isstatic\" empty-text=\"No locations available\" options.bind=\"locations\" value.bind=\"from\"></nselect></div><div id=\"exchange\" class=\"col-20\"><i if.bind=\"!isstatic\" click.delegate=\"swapFromTo()\" class=\"f7-icons pointer\">reload</i> <i if.bind=\"isstatic\" class=\"f7-icons pointer\">reload</i></div><div id=\"to\" class=\"col-40 label\">Destination:<br><a if.bind=\"isstatic\" class=\"btn btn-default\">${to}</a><nselect if.bind=\"!isstatic\" empty-text=\"No locations available\" options.bind=\"locations\" blank-text=\"Choose a destination\" value.bind=\"to\"></nselect></div></div></template>";
+  return "<template><require from=\"app/components/cselect\"></require><div if.bind=\"isstatic\" class=\"row text-center\"><div id=\"from\" class=\"col-40 label\">Pickup:<br><a class=\"btn btn-default\">${from}</a></div><div id=\"to\" class=\"col-40 label\">Destination:<br><a class=\"btn btn-default\">${to}</a></div></div><div if.bind=\"!isstatic\"><div class=\"content-block\"><cselect title=\"Pickup\" empty-text=\"No locations available\" options.bind=\"locations\" value.bind=\"from\"></cselect></div><div class=\"content-block\"><cselect title=\"Destination\" empty-text=\"No locations available\" options.bind=\"locations\" blank-text=\"Choose a destination\" value.bind=\"to\"></cselect></div></div></template>";
 });
 
 })();
@@ -9020,8 +9030,8 @@ System.register('app/trips/pickup-destination.js', ['aurelia-framework', 'app/ap
           this.app = app;
         }
 
-        PickupDestination.prototype.attached = function attached() {
-          this.from = this.hotel;
+        PickupDestination.prototype.bind = function bind() {
+          if (this.hotel) this.from = this.hotel;
         };
 
         PickupDestination.prototype.swapFromTo = function swapFromTo() {
@@ -9979,7 +9989,9 @@ System.register('app/f7.js', ['framework7'], function (_export, _context) {
       _export('$$', $$);
 
       _export('f7', f7 = new window.Framework7({
-        router: false
+        router: false,
+        materialRipple: false,
+        fastClicks: false
       }));
 
       _export('f7', f7);
