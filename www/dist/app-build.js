@@ -1321,6 +1321,181 @@ define("app/auth/reset-pin/reset-success.html!github:systemjs/plugin-text@0.0.9.
 })();
 (function() {
 var define = System.amdDefine;
+define("app/components/accordion-list-item.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template><li class=\"accordion-item\"><a class=\"item-content item-link\"><div class=\"item-inner\"><div class=\"item-title\">${title}</div></div></a><div class=\"accordion-item-content\"><div class=\"content-block\"><slot></slot></div></div></li></template>";
+});
+
+})();
+'use strict';
+
+System.register('app/components/accordion-list-item.js', ['aurelia-framework'], function (_export, _context) {
+  "use strict";
+
+  var bindable, _desc, _value, _class, _descriptor, AccordionListItem;
+
+  function _initDefineProp(target, property, descriptor, context) {
+    if (!descriptor) return;
+    Object.defineProperty(target, property, {
+      enumerable: descriptor.enumerable,
+      configurable: descriptor.configurable,
+      writable: descriptor.writable,
+      value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
+    });
+  }
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+      desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+      desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+      return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+      desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+      desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+      Object['define' + 'Property'](target, property, desc);
+      desc = null;
+    }
+
+    return desc;
+  }
+
+  function _initializerWarningHelper(descriptor, context) {
+    throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
+  }
+
+  return {
+    setters: [function (_aureliaFramework) {
+      bindable = _aureliaFramework.bindable;
+    }],
+    execute: function () {
+      _export('AccordionListItem', AccordionListItem = (_class = function AccordionListItem() {
+        _classCallCheck(this, AccordionListItem);
+
+        _initDefineProp(this, 'title', _descriptor, this);
+      }, _descriptor = _applyDecoratedDescriptor(_class.prototype, 'title', [bindable], {
+        enumerable: true,
+        initializer: null
+      }), _class));
+
+      _export('AccordionListItem', AccordionListItem);
+    }
+  };
+});
+
+(function() {
+var define = System.amdDefine;
+define("app/components/accordion-list.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
+  return "<template><div click.delegate=\"toggle($event)\" class=\"list-block accordion-list\"><ul><slot></slot></ul></div></template>";
+});
+
+})();
+'use strict';
+
+System.register('app/components/accordion-list.js', ['aurelia-framework'], function (_export, _context) {
+  "use strict";
+
+  var bindable, _desc, _value, _class, _descriptor, ITEM_EXPANDED_CLASS, AccordionList;
+
+  function _initDefineProp(target, property, descriptor, context) {
+    if (!descriptor) return;
+    Object.defineProperty(target, property, {
+      enumerable: descriptor.enumerable,
+      configurable: descriptor.configurable,
+      writable: descriptor.writable,
+      value: descriptor.initializer ? descriptor.initializer.call(context) : void 0
+    });
+  }
+
+  function _classCallCheck(instance, Constructor) {
+    if (!(instance instanceof Constructor)) {
+      throw new TypeError("Cannot call a class as a function");
+    }
+  }
+
+  function _applyDecoratedDescriptor(target, property, decorators, descriptor, context) {
+    var desc = {};
+    Object['ke' + 'ys'](descriptor).forEach(function (key) {
+      desc[key] = descriptor[key];
+    });
+    desc.enumerable = !!desc.enumerable;
+    desc.configurable = !!desc.configurable;
+
+    if ('value' in desc || desc.initializer) {
+      desc.writable = true;
+    }
+
+    desc = decorators.slice().reverse().reduce(function (desc, decorator) {
+      return decorator(target, property, desc) || desc;
+    }, desc);
+
+    if (context && desc.initializer !== void 0) {
+      desc.value = desc.initializer ? desc.initializer.call(context) : void 0;
+      desc.initializer = undefined;
+    }
+
+    if (desc.initializer === void 0) {
+      Object['define' + 'Property'](target, property, desc);
+      desc = null;
+    }
+
+    return desc;
+  }
+
+  function _initializerWarningHelper(descriptor, context) {
+    throw new Error('Decorating class property failed. Please ensure that transform-class-properties is enabled.');
+  }
+
+  return {
+    setters: [function (_aureliaFramework) {
+      bindable = _aureliaFramework.bindable;
+    }],
+    execute: function () {
+      ITEM_EXPANDED_CLASS = "accordion-item-expanded";
+
+      _export('AccordionList', AccordionList = (_class = function () {
+        function AccordionList() {
+          _classCallCheck(this, AccordionList);
+
+          _initDefineProp(this, 'items', _descriptor, this);
+        }
+
+        AccordionList.prototype.toggle = function toggle(event) {
+          var item = event.target;
+          console.log('toggle accordion item', item);
+        };
+
+        return AccordionList;
+      }(), _descriptor = _applyDecoratedDescriptor(_class.prototype, 'items', [bindable], {
+        enumerable: true,
+        initializer: null
+      }), _class));
+
+      _export('AccordionList', AccordionList);
+    }
+  };
+});
+
+(function() {
+var define = System.amdDefine;
 define("app/components/back.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
   return "<template bindable=\"title, action\"><a click.delegate=\"action()\" class=\"back pointer link\"><i class=\"icon icon-back\" style=\"transform: translate3d(0px, 0px, 0px)\"></i><span>${title || 'Back'}</span></a></template>";
 });
@@ -2031,7 +2206,7 @@ System.register('app/components/drivers-license.js', ['aurelia-framework'], func
 (function() {
 var define = System.amdDefine;
 define("app/components/form-element.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template bindable=\"label\"><li><div class=\"item-content\"><div class=\"item-inner\"><div class=\"item-title label\">${label}</div><div class=\"item-input\"><slot></slot></div></div></div></li></template>";
+  return "<template bindable=\"label, value\"><li><div class=\"item-content\"><div class=\"item-inner\"><div class=\"item-title label\">${label}</div><div class=\"item-input\"><slot if.bind=\"!value\"></slot><p if.bind=\"value\">${value}</p></div></div></div></li></template>";
 });
 
 })();
@@ -8077,7 +8252,7 @@ System.register('app/show-party.js', ['aurelia-framework', 'app/app', 'app/utils
 (function() {
 var define = System.amdDefine;
 define("app/show-trip.html!github:systemjs/plugin-text@0.0.9.js", [], function() {
-  return "<template><div if.bind=\"app.appContext.selectedTrip\" class=\"card\"><div class=\"card-header\"><span>${app.appContext.selectedTrip.paddedNumber}</span></div><div class=\"card-content\"><div class=\"list-block\"><ul><li class=\"item-content\" repeat.for=\"header of headers\"><div class=\"item-inner\"><div class=\"item-title\">${header}</div><div class=\"item-after\">${headerVal($index)}</div></div></li></ul></div></div></div></template>";
+  return "<template><require from=\"app/components/accordion-list\"></require><require from=\"app/components/accordion-list-item\"></require><require from=\"app/components/form-element.html\"></require><div if.bind=\"app.appContext.selectedTrip\"><div class=\"card\"><div class=\"card-header\"><span>${trip.paddedNumber}</span></div><div class=\"card-content\"><div class=\"list-block\"><ul><li class=\"item-content\" repeat.for=\"header of headers\"><div class=\"item-inner\"><div class=\"item-title\">${header}</div><div class=\"item-after\">${headerVal($index)}</div></div></li></ul></div></div></div><div class=\"content-block\"><div class=\"content-block-title\">Parties: ${trip.parties.length}</div><accordion-list containerless if.bind=\"trip.parties.length > 0\"><accordion-list-item repeat.for=\"party of trip.parties\" title=\"${party.paddedNumber}\" containerless><div class=\"list-block\"><ul class=\"no-top-border\"><form-element label=\"Party Name\" value=\"${party.partyName}\" containerless></form-element><form-element label=\"Party Size\" value=\"${party.partySize}\"></form-element><form-element label=\"Contact #\" value=\"${party.contactNumber}\" containerless></form-element><form-element label=\"Room #\" value=\"${party.roomNumber}\" containerless></form-element><form-element label=\"Email\" value=\"${party.email}\" containerless></form-element><form-element label=\"Trip Notes\" value=\"${party.partyNotes}\" containerless></form-element></ul></div></accordion-list-item></accordion-list></div></div></template>";
 });
 
 })();
@@ -8152,6 +8327,7 @@ System.register('app/show-trip.js', ['app/utils/table', 'app/app-base'], functio
 
         ShowTrip.prototype.bind = function bind() {
           this.headers = TableUtils.headersFromProperties(this.props, this.headers || {});
+          this.trip = this.app.appContext.selectedTrip;
         };
 
         return ShowTrip;
@@ -8794,10 +8970,10 @@ System.register('app/config/app-router.js', ['app/authorize-step', 'app/skip-mai
 
 'use strict';
 
-System.register('app/app.js', ['aurelia-framework', 'app/config/app-router', 'app/auth-context', 'app/app-context', 'app/auth-service', 'app/notifier', 'app/api', 'local-storage'], function (_export, _context) {
+System.register('app/app.js', ['aurelia-framework', 'app/config/app-router', 'app/auth-context', 'app/app-context', 'app/auth-service', 'app/notifier', 'app/api', 'app/f7', 'local-storage'], function (_export, _context) {
   "use strict";
 
-  var inject, Aurelia, AppRouterConfig, computedFrom, AuthContext, AppContext, AuthService, Notifier, Api, ls, _createClass, _dec, _dec2, _class, _desc, _value, _class2, App;
+  var inject, Aurelia, AppRouterConfig, computedFrom, AuthContext, AppContext, AuthService, Notifier, Api, f7, ls, _createClass, _dec, _dec2, _class, _desc, _value, _class2, App;
 
   function _classCallCheck(instance, Constructor) {
     if (!(instance instanceof Constructor)) {
@@ -8851,6 +9027,8 @@ System.register('app/app.js', ['aurelia-framework', 'app/config/app-router', 'ap
       Notifier = _appNotifier.Notifier;
     }, function (_appApi) {
       Api = _appApi.Api;
+    }, function (_appF) {
+      f7 = _appF.f7;
     }, function (_localStorage) {
       ls = _localStorage.default;
     }],
@@ -8873,8 +9051,8 @@ System.register('app/app.js', ['aurelia-framework', 'app/config/app-router', 'ap
         };
       }();
 
-      _export('App', App = (_dec = inject(Aurelia, AuthContext, AppContext, AuthService, Notifier, Api), _dec2 = computedFrom("authContext.isAuthenticated", "appContext.skipMainView"), _dec(_class = (_class2 = function () {
-        function App(aurelia, authContext, appContext, authService, notifier, api) {
+      _export('App', App = (_dec = inject(Aurelia, AuthContext, AppContext, AuthService, Notifier, Api, f7), _dec2 = computedFrom("authContext.isAuthenticated", "appContext.skipMainView"), _dec(_class = (_class2 = function () {
+        function App(aurelia, authContext, appContext, authService, notifier, api, f7) {
           var _this = this;
 
           _classCallCheck(this, App);
@@ -8891,6 +9069,7 @@ System.register('app/app.js', ['aurelia-framework', 'app/config/app-router', 'ap
           this.authService = authService;
           this.notifier = notifier;
           this.api = api;
+          this.f7 = f7;
         }
 
         App.prototype.configureRouter = function configureRouter(config, router) {
